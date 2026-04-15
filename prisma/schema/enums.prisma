@@ -1,0 +1,32 @@
+// ===================================
+// User & Auth related enums
+// ===================================
+
+enum userRole {
+    USER
+    ADMIN
+    MODERATOR
+    SUPER_ADMIN
+}
+
+enum userStatus {
+    PENDING_VERIFICATION
+    ACTIVE
+    INACTIVE
+    SUSPENDED
+    DELETED
+    BLOCKED
+}
+
+enum mfaMethod {
+    totp
+    sms
+    email
+    webauthn
+}
+
+enum loginAction {
+    login
+    logout
+}
+
