@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/services/prisma.service';
-import { User } from 'src/generated/prisma/client';
 import { CreateUserDTO } from './dto/create-user.dto';
+import { CreatedUserDTO } from './dto/created-user.dto';
 
 @Injectable()
 export class UserService {
@@ -25,7 +25,8 @@ export class UserService {
     return `${prefix}${separatorPrefix}${firstname}${lastname ? separatorSuffix + lastname : ''}${separatorSuffix}${suffix}`;
   }
 
-  async createUser(createUserDto: CreateUserDTO): Promise<User['id']> {
+  // return selected fields id, email, firstName, lastName, username
+  async createUser(createUserDto: CreateUserDTO): Promise<CreatedUserDTO> {
     const { email, password, firstName, lastName, providerId } = createUserDto;
     const username = this.createRandomInitialUserName(firstName, lastName);
     const newUser = await this.prismaService.user.create({
@@ -37,7 +38,14 @@ export class UserService {
         username,
         providerId,
       },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        username: true,
+      },
     });
-    return newUser.id;
+    return newUser;
   }
 }
