@@ -1,0 +1,9 @@
+{
+  "INTERNAL_SERVER_ERROR": "Internal Server Error",
+  "DATABASE_CONNECTION_REFUSED": "Database connection refused",
+  "UNIQU_CONSTRAINT_FAILED": "Unique constraint violation occurred",
+  "UNIQU_CONSTRAINT_MODEL_FAILED": "Unique constraint failed on model {model}",
+  "duplicate_value": "{field} is already in use, please choose another value",
+  "validation_failed": "Input data is not valid",
+  "make_sure_inputs_are_valid": "Make sure your inputs are valid"
+}

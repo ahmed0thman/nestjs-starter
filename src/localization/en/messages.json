@@ -1,0 +1,25 @@
+{
+  "account": {
+    "created": "Your account has been created successfully.",
+    "updated": "Your account has been updated successfully.",
+    "verify_email": "A verification email has been sent to your email {email}.",
+    "verified": "Your account has been verified successfully.",
+    "password_changed": "Your password has been changed successfully.",
+    "deleted": "Your account has been deleted successfully.",
+    "deactivated": "Your account has been deactivated successfully.",
+    "reactivated": "Your account has been reactivated successfully.",
+    "login": "You have logged in successfully.",
+    "logout": "You have logged out successfully.",
+    "password_reset": "A password reset link has been sent to your email {email}.",
+    "password_reset_success": "Your password has been reset successfully.",
+    "MFA_enabled": "Multi-factor authentication has been enabled successfully.",
+    "MFA_disabled": "Multi-factor authentication has been disabled successfully.",
+    "OTP_sent": "A one-time password has been sent to your email {email}.",
+    "OTP_verified": "Your one-time password has been verified successfully.",
+    "session_expired": "Your session has expired. Please log in again.",
+    "account_locked": "Your account has been locked due to multiple failed login attempts. Please try again after {time}.",
+    "account_unlocked": "Your account has been unlocked. You can now log in.",
+    "suspended": "Your account has been suspended. Please contact support for more information.",
+    "unsuspended": "Your account has been unsuspended. You can now log in."
+  }
+}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
@@ -13,8 +14,11 @@ import { AppLoggerService } from '../modules/logger/logger.service';
 import { env } from '../config/env/env';
 import AppError from '../errors/app.error';
 import { PrismaClientKnownRequestError } from 'src/generated/prisma/internal/prismaNamespace';
+import { YcI18nService } from '../modules/yc-i18n/yc-i18n.service';
+import { I18nPath } from 'src/i18n/i18n.generated';
 
 interface ExceptionResponse {
+  status: 'error';
   statusCode: number;
   timestamp: string;
   message: string;
@@ -35,6 +39,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   constructor(
     private readonly httpAdapterHost: HttpAdapterHost,
     private readonly appLogger: AppLoggerService,
+    private readonly YcI18nService: YcI18nService,
   ) {}
 
   catch(exception: any, host: ArgumentsHost) {
@@ -54,9 +59,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const isProduction = env.NODE_ENV === 'production';
 
     let exceptionResponse: ExceptionResponse = {
+      status: 'error',
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       timestamp: new Date().toISOString(),
-      message: 'Internal server error',
+      message: this.YcI18nService.t('errors.INTERNAL_SERVER_ERROR'),
       error: 'Unknown error',
       isOperational: false,
       name: 'Error',
@@ -67,7 +73,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       method,
     };
 
-    let appErrorMetaData: Record<string, any>[] = [];
+    let appErrorMetaData: Record<string, any> = {};
 
     if (typeof exception === 'object' && exception !== null) {
       if ('statusCode' in exception && typeof exception.statusCode === 'number')
@@ -82,10 +88,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
         exceptionResponse.name = exception.name;
 
       if (
-        'isOptional' in exception &&
-        typeof exception.isOptional === 'boolean'
+        'isOperational' in exception &&
+        typeof exception.isOperational === 'boolean'
       )
-        exceptionResponse.isOperational = exception.isOptional;
+        exceptionResponse.isOperational = exception.isOperational;
 
       if ('stack' in exception && typeof exception.stack === 'string')
         exceptionResponse.stack = exception.stack;
@@ -124,6 +130,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
         exceptionResponse,
       );
 
+    if (exception.name === 'I18nValidationException' && 'errors' in exception) {
+      exceptionResponse = this.handleI18nValidationException(
+        exception,
+        exceptionResponse,
+      );
+    }
+
     if (exception instanceof AppError) {
       exceptionResponse.statusCode = exception.statusCode;
       exceptionResponse.message = exception.message;
@@ -155,29 +168,54 @@ export class AllExceptionsFilter implements ExceptionFilter {
           statusCode: exceptionResponse.statusCode,
           timestamp: exceptionResponse.timestamp,
           message: exceptionResponse.message,
-          errors: exceptionResponse.errors,
           fields: exceptionResponse.fields,
+          errors: exceptionResponse.errors,
         };
       } else {
         resObject = {
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
           timestamp: new Date().toISOString(),
-          message: 'An unexpected error occurred',
+          message: this.YcI18nService.t('errors.INTERNAL_SERVER_ERROR'),
         };
       }
     }
 
     response.status(exceptionResponse.statusCode).json(resObject);
   }
+  handleI18nValidationException(
+    exception: any,
+    exceptionResponse: ExceptionResponse,
+  ): ExceptionResponse {
+    exceptionResponse.statusCode = HttpStatus.BAD_REQUEST;
+    exceptionResponse.message = this.YcI18nService.t(
+      'errors.validation_failed',
+    );
+    exceptionResponse.error = 'Validation_Failed';
+    if (!('errors' in exception)) return exceptionResponse;
+    const fileds: Record<string, any> = {};
+    if (Array.isArray(exception.errors)) {
+      exception.errors.forEach((error) => {
+        if (typeof error === 'object' && error !== null) {
+          const property = error.property || 'unknown';
+          const constraints = error.constraints || {};
+          fileds[property] = Object.values(constraints)
+            .map((constrain) => this.YcI18nService.t(constrain as I18nPath))
+            .join(', ');
+        }
+      });
+    }
+    exceptionResponse.fields = fileds;
+    return exceptionResponse;
+  }
 
   private handleConnectionRefusedError(
     exceptionResponse: ExceptionResponse,
   ): ExceptionResponse {
+    exceptionResponse.statusCode = HttpStatus.SERVICE_UNAVAILABLE;
     return {
       ...exceptionResponse,
       isOperational: false,
-      message:
-        'Database connection refused. Please check your database server.',
+      message: this.YcI18nService.t('errors.DATABASE_CONNECTION_REFUSED'),
       error: 'Connection Refused',
     };
   }
@@ -186,8 +224,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     exception: any,
     exceptionResponse: ExceptionResponse,
   ): ExceptionResponse {
+    exceptionResponse.statusCode = HttpStatus.BAD_REQUEST;
     let target;
-    let fields: string[] | undefined;
+    const fields: string[] | Record<string, any> = {};
     if (exception instanceof PrismaClientKnownRequestError) {
       target = exception.meta?.modelName || null;
 
@@ -198,17 +237,31 @@ export class AllExceptionsFilter implements ExceptionFilter {
           };
         };
       };
-      fields = driverAdapterError.cause?.constraint?.fields || undefined;
+      if (
+        driverAdapterError.cause?.constraint?.fields &&
+        Array.isArray(driverAdapterError.cause?.constraint?.fields)
+      ) {
+        driverAdapterError.cause?.constraint?.fields.forEach((field) => {
+          const fieldPath = `fields.${field}` as I18nPath;
+          // check if fieldPath is a valid I18nPath
+
+          if (fieldPath)
+            fields[`${field}`] = this.YcI18nService.t(
+              'errors.duplicate_value',
+              {
+                args: { field: this.YcI18nService.t(fieldPath) },
+              },
+            );
+        });
+      }
     }
-    const message = target
-      ? `Unique constraint failed on model ${target}`
-      : 'Unique constraint violation occurred.';
+    const message = this.YcI18nService.t('errors.make_sure_inputs_are_valid');
     return {
       ...exceptionResponse,
       isOperational: true,
       message,
       fields,
-      error: 'Unique Constraint Violation',
+      error: `Unique Constraint Violation on ${target || 'unknown model'}`,
     };
   }
 }

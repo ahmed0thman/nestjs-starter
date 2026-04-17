@@ -5,24 +5,46 @@ import {
   IsString,
   Length,
 } from 'class-validator';
+import { Match } from 'src/common/decorators/input-dto-match';
+import { localesValidation } from 'src/common/modules/yc-i18n/locals-validations';
 
 export class SignUpDTO {
-  @IsEmail()
-  email: string;
-  @IsString()
-  @Length(8, 32)
-  password: string;
-  @IsString()
-  @Length(2, 20)
-  passwordConfirm: string;
-  @IsString()
-  @Length(2, 20)
-  firstName: string;
+  @IsNotEmpty({ message: localesValidation('validations.email.is_required') })
+  @IsEmail(
+    {},
+    { message: localesValidation('validations.email.is_not_correct') },
+  )
+  email!: string;
+  // =======
+  @IsNotEmpty({
+    message: localesValidation('validations.password.is_required'),
+  })
+  @Length(8, 32, { message: localesValidation('validations.password.length') })
+  password!: string;
+  // =======
+  @IsNotEmpty({
+    message: localesValidation('validations.password.is_required'),
+  })
+  @Match('password', {
+    message: localesValidation('validations.password.not_confirmed'),
+  })
+  passwordConfirm!: string;
+  // =======
+  @IsNotEmpty({
+    message: localesValidation('validations.firstName.is_required'),
+  })
+  @IsString({ message: localesValidation('validations.firstName.is_string') })
+  @Length(2, 50, { message: localesValidation('validations.firstName.length') })
+  firstName!: string;
+  // ======
   @IsOptional()
-  @IsString()
-  @Length(2, 20)
-  lastName: string;
+  @IsString({ message: localesValidation('validations.lastName.is_string') })
+  @Length(2, 50, { message: localesValidation('validations.lastName.length') })
+  lastName!: string;
+  // ======
   @IsOptional()
-  @IsString()
+  @IsString({
+    message: localesValidation('validations.provider.is_not_correct'),
+  })
   providerId?: string;
 }

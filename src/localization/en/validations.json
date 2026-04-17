@@ -1,0 +1,23 @@
+{
+  "email": {
+    "is_not_correct": "The email is not correct",
+    "is_required": "The email is required"
+  },
+  "password": {
+    "is_required": "The password is required",
+    "length": "The password must be between 8 and 20 characters",
+    "not_confirmed": "The password is not confirmed"
+  },
+  "firstName": {
+    "is_required": "The first name is required",
+    "is_string": "The first name must be a string",
+    "length": "The first name must be between 2 and 50 characters"
+  },
+  "lastName": {
+    "is_string": "The last name must be a string",
+    "length": "The last name must be between 2 and 50 characters"
+  },
+  "provider": {
+    "is_not_correct": "The authentication provider is not correct"
+  }
+}

@@ -34,6 +34,7 @@
     "class-validator": "^0.15.1",
     "dotenv": "^17.4.2",
     "nest-winston": "^1.10.2",
+    "nestjs-i18n": "^10.6.5",
     "nodemailer": "^8.0.5",
     "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",
