@@ -13,6 +13,11 @@ export type I18nTranslations = {
         "duplicate_value": string;
         "validation_failed": string;
         "make_sure_inputs_are_valid": string;
+        "invalid_credentials": string;
+        "user_not_found": string;
+        "account_not_verified": string;
+        "invalid_token": string;
+        "forbidden": string;
     };
     "fields": {
         "email": string;

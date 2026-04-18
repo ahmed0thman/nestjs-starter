@@ -15,15 +15,19 @@ export const envSchema = z.object({
     .string()
     .regex(/^\d+$/, 'DATABASE_PORT must be a number')
     .default('5433'),
-  JWT_SECRET: z.string().default('pRGCzYn8byKBQoaAek109aZDf3xqUhlGia7uOLoCPwr'),
-  JWT_ACCESS_TOKEN_EXP: z.string().default('30d'),
-  JWT_REFRESH_TOKEN_EXP: z.string().default('1h'),
-  NODE_MAILER_HOST: z.string().default('sandbox.smtp.mailtrap.io'),
+  JWT_SECRET: z.string(),
+  JWT_ACCESS_TOKEN_EXP: z.any().default('30m'),
+  JWT_REFRESH_TOKEN_EXP: z.any().default('7d'), // as we well use refresh token rotation, we can set a short expiration time for refresh tokens
+  NODE_MAILER_HOST: z.string(),
   NODE_MAILER_PORT: z
     .string()
-    .regex(/^\d+$/, 'NODE_MAILER_PORT must be a number')
-    .default('2525'),
-  NODE_MAILER_USER: z.string().default('04c1f3dc47ee7b'),
-  NODE_MAILER_PASS: z.string().default('03ffee14e59857'),
+    .regex(/^\d+$/, 'NODE_MAILER_PORT must be a number'),
+  NODE_MAILER_USER: z.string(),
+  NODE_MAILER_PASS: z.string(),
   EMAIL_FROM: z.string().default('noreply@example.com'),
+  FAKE_HASHED_PASSWORD: z
+    .string()
+    .default(
+      '$argon2id$v=19$m=65536,t=3,p=4$Z3Vlc3R1c2VyLXNlbHRlZC1oYXNo$Z3Vlc3R1c2VyLXNlbHRlZC1oYXNo',
+    ),
 });

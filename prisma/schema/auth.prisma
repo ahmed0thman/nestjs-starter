@@ -14,7 +14,7 @@ model User {
     createdAt      DateTime       @default(now())
     updatedAt      DateTime       @updatedAt
     deletedAt      DateTime?
-    authSecurities authSecurity[]
+    authSecurities authSecurity?
     loginHistories LoginHistory[]
     emails         Emails[]
     phoneNumbers   PhoneNumbers[]
@@ -50,19 +50,23 @@ model PhoneNumbers {
 }
 
 model authSecurity {
-    id                  String     @id @default(dbgenerated("uuidv7()"))
-    userId              String
-    failedLoginAttempts Int        @default(0)
-    lastFailedLogin     DateTime?
-    lockoutUntil        DateTime?
-    lastLogin           DateTime?
-    lastLogout          DateTime?
-    lastPasswordChange  DateTime?
-    mfaEnabled          Boolean    @default(false)
-    mfaMethod           mfaMethod? @default(totp)
-    mfaSecret           String?
-    createdAt           DateTime   @default(now())
-    updatedAt           DateTime   @updatedAt
+    id                            String     @id @default(dbgenerated("uuidv7()"))
+    userId                        String     @unique
+    sentVerificationEmailAttempts Int        @default(0)
+    verificationSecret            String?
+    lastVerificationEmailSentAt   DateTime?
+    failedLoginAttempts           Int        @default(0)
+    lastFailedLogin               DateTime?
+    lockoutUntil                  DateTime?
+    lastLogin                     DateTime?
+    lastLogout                    DateTime?
+    lastPasswordChange            DateTime?
+    mfaEnabled                    Boolean    @default(false)
+    mfaMethod                     mfaMethod? @default(totp)
+    mfaSecret                     String?
+    sentMfaSecretAttempts         Int        @default(0)
+    createdAt                     DateTime   @default(now())
+    updatedAt                     DateTime   @updatedAt
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

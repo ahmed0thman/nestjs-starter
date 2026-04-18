@@ -5,7 +5,7 @@ import {
 } from 'class-validator';
 
 export function Match<T>(
-  property: [keyof T] | keyof T,
+  property: keyof T,
   validationOptions?: ValidationOptions,
 ) {
   return function (object: object, propertyName: string) {

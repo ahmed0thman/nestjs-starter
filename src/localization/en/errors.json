@@ -5,5 +5,10 @@
   "UNIQU_CONSTRAINT_MODEL_FAILED": "Unique constraint failed on model {model}",
   "duplicate_value": "{field} is already in use, please choose another value",
   "validation_failed": "Input data is not valid",
-  "make_sure_inputs_are_valid": "Make sure your inputs are valid"
+  "make_sure_inputs_are_valid": "Make sure your inputs are valid",
+  "invalid_credentials": "Invalid email or password",
+  "user_not_found": "User not found",
+  "account_not_verified": "Account not verified, please check your email {email}",
+  "invalid_token": "Invalid or expired token",
+  "forbidden": "You do not have permission"
 }

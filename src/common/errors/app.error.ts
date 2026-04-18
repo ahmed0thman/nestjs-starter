@@ -8,7 +8,7 @@ class AppError extends HttpException {
   readonly statusCode: number;
   readonly errors?: unknown;
   readonly isOperational: boolean;
-  readonly appErrorMetaData: Record<string, any>[];
+  readonly appErrorMetaData: Record<string, any>;
   readonly stack?: string | undefined;
 
   constructor(
@@ -16,7 +16,7 @@ class AppError extends HttpException {
     message: string,
     errors?: unknown,
     isOperational: boolean = true,
-    ...appErrorMetaData: Record<string, any>[]
+    appErrorMetaData: Record<string, any> = {},
   ) {
     super(
       {
@@ -38,12 +38,8 @@ class AppError extends HttpException {
     HttpException.captureStackTrace(this, this.constructor);
   }
 
-  static badRequest(
-    message: string,
-    errors?: unknown,
-    code?: string,
-  ): AppError {
-    return new AppError(HttpStatus.BAD_REQUEST, message, { errors, code });
+  static badRequest(message: string, errors?: unknown): AppError {
+    return new AppError(HttpStatus.BAD_REQUEST, message, errors);
   }
 
   static unauthorized(message: string = 'Unauthorized'): AppError {

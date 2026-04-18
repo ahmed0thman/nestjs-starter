@@ -182,7 +182,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     response.status(exceptionResponse.statusCode).json(resObject);
   }
-  handleI18nValidationException(
+
+  private handleI18nValidationException(
     exception: any,
     exceptionResponse: ExceptionResponse,
   ): ExceptionResponse {
@@ -197,10 +198,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
       exception.errors.forEach((error) => {
         if (typeof error === 'object' && error !== null) {
           const property = error.property || 'unknown';
-          const constraints = error.constraints || {};
-          fileds[property] = Object.values(constraints)
-            .map((constrain) => this.YcI18nService.t(constrain as I18nPath))
-            .join(', ');
+          const constraints: Record<string, string> = error.constraints || {};
+          fileds[property] =
+            Object.values(constraints).length > 0
+              ? Object.values(constraints)
+                  .map((constrain) =>
+                    this.YcI18nService.t(constrain as I18nPath),
+                  )
+                  .join(', ')
+              : '';
         }
       });
     }
@@ -224,7 +230,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     exception: any,
     exceptionResponse: ExceptionResponse,
   ): ExceptionResponse {
-    exceptionResponse.statusCode = HttpStatus.BAD_REQUEST;
+    exceptionResponse.statusCode = HttpStatus.CONFLICT;
     let target;
     const fields: string[] | Record<string, any> = {};
     if (exception instanceof PrismaClientKnownRequestError) {

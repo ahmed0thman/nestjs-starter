@@ -38,7 +38,7 @@ export class ResponseTransformerInterceptor<T> implements NestInterceptor<
     const response = context.switchToHttp().getResponse<Response>();
     return next.handle().pipe(
       map((data) => {
-        this.logger.logWithMetadata('info', 'Transforming response', { data });
+        // this.logger.logWithMetadata('info', 'Transforming response', { data });
         // clone data to avoid mutating the original response object
         const res = { ...data } as IResponse<T>;
 
