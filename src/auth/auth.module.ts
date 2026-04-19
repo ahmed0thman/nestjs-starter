@@ -7,6 +7,8 @@ import { UserModule } from 'src/domain/user/user.module';
 import { MailModule } from 'src/mail/mail.module';
 import { env } from 'src/common/config/env/env';
 import { JwtStrategy } from './jwt.strategy';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { AuthUtilsService } from '../common/services/auth.utils.service';
 
 @Module({
   imports: [
@@ -22,7 +24,15 @@ import { JwtStrategy } from './jwt.strategy';
       global: true, // Make the JwtModule available globally, so you don't need to import it in other modules
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [
+    AuthService,
+    AuthUtilsService,
+    JwtStrategy,
+    {
+      provide: 'APP_GUARD',
+      useClass: JwtAuthGuard,
+    },
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Patch, Post, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDTO } from './dto/sign-up.dto';
 import { CreatedUserDTO } from 'src/domain/user/dto/created-user.dto';
@@ -8,14 +8,19 @@ import { AuthCredentialsDTO } from './dto/auth-credentials.dto';
 import { type Response } from 'express';
 import { IUserPayload } from './interfaces/auth.interface';
 import { env } from 'src/common/config/env/env';
+import { Public } from 'src/common/decorators/public-route.decorator';
+import { AuthUtilsService } from 'src/common/services/auth.utils.service';
+import { VerifyEmailDTO } from './dto/verify-email.dto';
 
 @Controller('/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly authUtilsService: AuthUtilsService,
     private readonly ycI18nService: YcI18nService,
   ) {}
 
+  @Public()
   @Post('/sign-up')
   async signUp(
     @Body() signUpDTO: SignUpDTO,
@@ -23,12 +28,13 @@ export class AuthController {
     const user = await this.authService.signUp(signUpDTO);
     return {
       message: this.ycI18nService.t('messages.account.verify_email', {
-        args: { email: this.authService.secrtizeEmail(user.email) },
+        args: { email: this.authUtilsService.secrtizeEmail(user.email) },
       }),
       data: user,
     };
   }
 
+  @Public()
   @Post('/sign-in')
   async signIn(
     @Body() authCredentials: AuthCredentialsDTO,
@@ -60,4 +66,27 @@ export class AuthController {
       data: data.user,
     };
   }
+
+  // Verify email
+  @Public()
+  @Patch('verify-email')
+  async verifyEmail(
+    @Body() verifyEmailDTO: VerifyEmailDTO,
+  ): Promise<IResponse> {
+    await this.authService.verifyEmail(verifyEmailDTO);
+    return {
+      message: this.ycI18nService.t('messages.account.verified'),
+    };
+  }
+
+  // Verify email
+  // @Public()
+  // @Get('verify-email')
+  // async verifyEmail(
+  //   @Query('userId') userId: string,
+  //   @Query('secret') secret: string,
+  //   @Res() res: Response,
+  // ) {
+  //   res.send(await this.authService.verifyEmail(userId, secret));
+  // }
 }
