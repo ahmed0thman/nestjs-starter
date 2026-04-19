@@ -12,6 +12,9 @@ import {
   ITokensPayload,
   IAuthUser,
 } from './interfaces/auth.interface';
+import { AuthUtilsService } from '../common/services/auth.utils.service';
+import { AppLoggerService } from 'src/common/modules/logger/logger.service';
+import { VerifyEmailDTO } from './dto/verify-email.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,16 +22,9 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly ycI18nService: YcI18nService,
+    private readonly authUtilsService: AuthUtilsService,
+    private readonly logger: AppLoggerService,
   ) {}
-
-  secrtizeEmail(email: string) {
-    const [localPart, domain] = email.split('@');
-    const hiddenLocalPart =
-      localPart[0] +
-      '***' +
-      localPart.slice(localPart.length - 2, localPart.length);
-    return `${hiddenLocalPart}@${domain}`;
-  }
 
   private async signInToken(
     userPayload: IUserPayload,
@@ -36,16 +32,43 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync(userPayload);
     const refreshToken = await this.jwtService.signAsync(userPayload, {
       expiresIn: env.JWT_REFRESH_TOKEN_EXP as undefined,
-      jwtid: crypto.randomUUID(), // Generate a unique identifier for the refresh token
+      jwtid: this.authUtilsService.genereateSecureJti(),
     });
 
     return { accessToken, refreshToken };
   }
 
   async signUp(signUpDto: SignUpDTO) {
-    const user = await this.userService.createUser(signUpDto);
+    const { user, verificationSecret, emailHistoryId } =
+      await this.userService.createUser(signUpDto);
     const fullName = `${user.firstName} ${user.lastName}`;
-    await this.mailService.sendWelcomeEmail(user.email, fullName);
+    try {
+      this.logger.log(
+        `Sending verification email to ${this.authUtilsService.secrtizeEmail(user.email)}`,
+        'AuthService-signUp',
+      ); // log the email being sent without exposing the full email
+      await this.mailService.sendVerificationEmail(
+        user.email,
+        user.id,
+        fullName,
+        verificationSecret,
+      );
+      this.logger.log(
+        `Verification email sent to ${this.authUtilsService.secrtizeEmail(user.email)}`,
+        'AuthService-signUp',
+      );
+
+      await this.userService.updateEmailHistoryStatus(emailHistoryId, 'sent');
+    } catch (error) {
+      // TODO: handle email failuer using kafka
+      // for now we will just log the error and move on
+      this.logger.error(
+        'Failed to send verification email',
+        String(error),
+        'AuthService-signUp',
+      );
+      await this.userService.updateEmailHistoryStatus(emailHistoryId, 'failed');
+    }
     return user;
   }
 
@@ -65,5 +88,34 @@ export class AuthService {
     const { accessToken, refreshToken } = await this.signInToken(userPayload);
 
     return { user: userPayload, token: { accessToken, refreshToken } };
+  }
+
+  async verifyEmail(verifyEmailDTO: VerifyEmailDTO): Promise<void> {
+    const { emailHistoryId, user } =
+      await this.userService.verifyEmail(verifyEmailDTO);
+
+    // send verification success email
+    try {
+      this.logger.log(
+        `Sending welcome email to ${this.authUtilsService.secrtizeEmail(user.email)}`,
+        'AuthService-verifyEmail',
+      ); // log the email being sent without exposing the full email
+      await this.mailService.sendWelcomeEmail(user.email, user.firstName);
+      this.logger.log(
+        `Welcome email sent to ${this.authUtilsService.secrtizeEmail(user.email)}`,
+        'AuthService-verifyEmail',
+      );
+
+      // update email history status to sent
+      await this.userService.updateEmailHistoryStatus(emailHistoryId, 'sent');
+    } catch (error) {
+      this.logger.error(
+        'Failed to send welcome email',
+        String(error),
+        'AuthService-verifyEmail',
+      );
+      // update email history status to failed
+      await this.userService.updateEmailHistoryStatus(emailHistoryId, 'failed');
+    }
   }
 }
