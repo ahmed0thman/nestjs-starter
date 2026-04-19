@@ -5,6 +5,7 @@ import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { AppLoggerService } from 'src/common/modules/logger/logger.service';
 import { render } from '@react-email/render';
 import { WelcomeEmail } from './templates/WelcomeEmail';
+import { VerificationEmail } from './templates/VerificationEmail';
 
 export interface emailOptions {
   to: string;
@@ -45,8 +46,24 @@ export class MailService {
     const html = await render(
       WelcomeEmail({
         name,
-        appName: '<APP_NAME>',
-        loginUrl: 'https://example.com/login',
+        supportEmail: 'support@example.com',
+      }),
+    );
+    await this.sendMail({ to, subject, html });
+  }
+
+  async sendVerificationEmail(
+    to: string,
+    userId: string,
+    name: string,
+    verificationSecret: string,
+  ): Promise<void> {
+    const subject = 'Verify your email address';
+    const html = await render(
+      VerificationEmail({
+        name,
+        verificationSecret,
+        userId,
         supportEmail: 'support@example.com',
       }),
     );

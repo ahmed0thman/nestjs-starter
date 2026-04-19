@@ -5,6 +5,8 @@ export const envSchema = z.object({
     .enum(['development', 'production', 'test'])
     .default('development'),
   API_VERSION: z.string().default('v1'),
+  APP_NAME: z.string().default('nestjs-starter'),
+  APP_URL: z.string().default('http://localhost:3000'),
   PORT: z.string().regex(/^\d+$/, 'PORT must be a number').default('3000'),
   DATABASE_URL: z.url(),
   DATABASE_USERNAME: z.string().default('user'),
