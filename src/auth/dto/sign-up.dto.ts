@@ -5,7 +5,7 @@ import {
   IsString,
   Length,
 } from 'class-validator';
-import { Match } from 'src/common/decorators/input-dto-match';
+import { Match } from 'src/common/decorators/input-dto-match.decorator';
 import { localesValidation } from 'src/common/modules/yc-i18n/locals-validations';
 
 export class SignUpDTO {
