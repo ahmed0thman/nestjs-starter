@@ -75,11 +75,11 @@ model authSecurity {
     @@index([userId])
 }
 
-model Session {
+model JwtSession {
     id             String   @id @default(dbgenerated("uuidv7()"))
     userId         String
     loginHistoryId String
-    token          String   @unique
+    jti            String   @unique
     createdAt      DateTime @default(now())
     expiresAt      DateTime
     isValid        Boolean  @default(true)
@@ -88,29 +88,5 @@ model Session {
     loginHistory LoginHistory @relation(fields: [loginHistoryId], references: [id], onDelete: Cascade)
 
     @@index([userId, loginHistoryId])
-    @@index([token])
-}
-
-model LoginHistory {
-    id            String      @id @default(dbgenerated("uuidv7()"))
-    userId        String
-    action        loginAction
-    ipAddress     String?
-    userAgent     String?
-    device_id     String?
-    geoCountry    String?
-    GeoCity       String?
-    GeoLatitude   Float?
-    GeoLongitude  Float?
-    success       Boolean
-    attemptNumber Int         @default(1)
-    failureReason String?
-    isSuspicious  Boolean     @default(false)
-    createdAt     DateTime    @default(now())
-
-    user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-    sessions Session[]
-
-    @@index([userId, action])
-    @@index([device_id])
+    @@index([jti])
 }
