@@ -19,5 +19,10 @@
   },
   "provider": {
     "is_not_correct": "The authentication provider is not correct"
+  },
+  "verifyEmail": {
+    "is_required": "The verification code is required",
+    "invalid": "The verification code is invalid",
+    "expired": "The verification code has expired"
   }
 }

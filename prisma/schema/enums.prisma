@@ -19,6 +19,7 @@ enum userStatus {
 }
 
 enum mfaMethod {
+    otp
     totp
     sms
     email
@@ -30,3 +31,35 @@ enum loginAction {
     logout
 }
 
+enum verification_secret_status {
+    fresh
+    used
+    expired
+}
+
+// ================================
+// Email Related Enums
+// ================================
+
+enum email_type {
+    verification
+    password_reset
+    notification
+}
+
+enum email_provider {
+    sendgrid
+    mailgun
+    ses
+    smtp
+}
+
+enum email_status {
+    sent
+    failed
+    pending
+    bounced
+    delivered
+    opened
+    clicked
+}

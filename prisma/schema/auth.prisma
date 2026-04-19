@@ -18,7 +18,8 @@ model User {
     loginHistories LoginHistory[]
     emails         Emails[]
     phoneNumbers   PhoneNumbers[]
-    sessions       Session[]
+    jwtSessions    JwtSession[]
+    emailHistories EmailHistory[]
 
     @@index([email])
     @@index([username])
@@ -54,6 +55,7 @@ model authSecurity {
     userId                        String     @unique
     sentVerificationEmailAttempts Int        @default(0)
     verificationSecret            String?
+    verificationSecretStatues verification_secret_status? @default(fresh)
     lastVerificationEmailSentAt   DateTime?
     failedLoginAttempts           Int        @default(0)
     lastFailedLogin               DateTime?
@@ -62,7 +64,7 @@ model authSecurity {
     lastLogout                    DateTime?
     lastPasswordChange            DateTime?
     mfaEnabled                    Boolean    @default(false)
-    mfaMethod                     mfaMethod? @default(totp)
+    mfaMethod                     mfaMethod? @default(otp)
     mfaSecret                     String?
     sentMfaSecretAttempts         Int        @default(0)
     createdAt                     DateTime   @default(now())

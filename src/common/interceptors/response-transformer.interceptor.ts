@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AppLoggerService } from '../modules/logger/logger.service';
 
-export interface IResponse<T> {
+export interface IResponse<T = any> {
   message: string | string[];
   results?: number;
   data?: T;

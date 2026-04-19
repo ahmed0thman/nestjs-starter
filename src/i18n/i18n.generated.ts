@@ -18,6 +18,7 @@ export type I18nTranslations = {
         "account_not_verified": string;
         "invalid_token": string;
         "forbidden": string;
+        "invalid_verification_token": string;
     };
     "fields": {
         "email": string;
@@ -73,6 +74,11 @@ export type I18nTranslations = {
         };
         "provider": {
             "is_not_correct": string;
+        };
+        "verifyEmail": {
+            "is_required": string;
+            "invalid": string;
+            "expired": string;
         };
     };
 };
