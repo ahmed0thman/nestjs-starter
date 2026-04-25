@@ -2,39 +2,32 @@
 // User & Auth related enums
 // ===================================
 
-enum userRole {
-    USER
-    ADMIN
-    MODERATOR
-    SUPER_ADMIN
-}
-
 enum userStatus {
-    PENDING_VERIFICATION
-    ACTIVE
-    INACTIVE
-    SUSPENDED
-    DELETED
-    BLOCKED
+  PENDING_VERIFICATION
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+  BLOCKED
 }
 
 enum mfaMethod {
-    otp
-    totp
-    sms
-    email
-    webauthn
+  otp
+  totp
+  sms
+  email
+  webauthn
 }
 
 enum loginAction {
-    login
-    logout
+  login
+  logout
 }
 
 enum verification_secret_status {
-    fresh
-    used
-    expired
+  fresh
+  used
+  expired
 }
 
 // ================================
@@ -42,24 +35,24 @@ enum verification_secret_status {
 // ================================
 
 enum email_type {
-    verification
-    password_reset
-    notification
+  verification
+  password_reset
+  notification
 }
 
 enum email_provider {
-    sendgrid
-    mailgun
-    ses
-    smtp
+  sendgrid
+  mailgun
+  ses
+  smtp
 }
 
 enum email_status {
-    sent
-    failed
-    pending
-    bounced
-    delivered
-    opened
-    clicked
+  sent
+  failed
+  pending
+  bounced
+  delivered
+  opened
+  clicked
 }

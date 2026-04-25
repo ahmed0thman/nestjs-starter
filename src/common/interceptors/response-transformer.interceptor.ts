@@ -8,45 +8,49 @@ import { Response } from 'express';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AppLoggerService } from '../modules/logger/logger.service';
-
-export interface IResponse<T = any> {
-  message: string | string[];
-  results?: number;
-  data?: T;
-  meta?: {
-    page: number;
-    pageSize: number;
-    totalPages: number;
-  };
-}
-
-interface IResponseFull<T> extends IResponse<T> {
-  status: 'success';
-  statusCode: number;
-}
+import {
+  ApiSuccessResponse,
+  ApiSuccessResponseList,
+} from '../api-response/success.response';
 
 @Injectable()
 export class ResponseTransformerInterceptor<T> implements NestInterceptor<
   T,
-  IResponseFull<T>
+  ApiSuccessResponse<T> | ApiSuccessResponseList<T>
 > {
   constructor(private readonly logger: AppLoggerService) {}
   intercept(
     context: ExecutionContext,
     next: CallHandler<T>,
-  ): Observable<IResponseFull<T>> {
+  ): Observable<ApiSuccessResponse<T> | ApiSuccessResponseList<T>> {
     const response = context.switchToHttp().getResponse<Response>();
     return next.handle().pipe(
       map((data) => {
         // this.logger.logWithMetadata('info', 'Transforming response', { data });
         // clone data to avoid mutating the original response object
-        const res = { ...data } as IResponse<T>;
-
+        const res = { ...data } as
+          | ApiSuccessResponse<T>
+          | ApiSuccessResponseList<T>;
+        // check if it is a paginated response by looking for pagination metadata
+        // if (
+        //   data &&
+        //   typeof data === 'object' &&
+        //   'results' in data &&
+        //   typeof data.results === 'number' &&
+        //   data.results > 0 &&
+        //   'data' in data &&
+        //   Array.isArray(data.data) &&
+        //   data.data.length > 0
+        // ) {
+        //   res = { ...data } as ApiSuccessResponseList<T>;
+        // } else {
+        //   res = { ...data } as ApiSuccessResponse<T>;
+        // }
         return {
           ...res,
           status: 'success',
           statusCode: response.statusCode,
-        } satisfies IResponseFull<T>;
+        } satisfies ApiSuccessResponse<T> | ApiSuccessResponseList<T>;
       }),
     );
   }

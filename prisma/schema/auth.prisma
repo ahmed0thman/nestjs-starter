@@ -1,92 +1,94 @@
 model User {
-    id             String         @id @default(dbgenerated("uuidv7()"))
-    email          String         @unique
-    username       String         @unique
-    firstName      String
-    lastName       String?        @default("")
-    phoneNumber    String?
-    password       String
-    verified       Boolean        @default(false)
-    status         userStatus     @default(PENDING_VERIFICATION)
-    role           userRole       @default(USER)
-    provider       String         @default("local")
-    providerId     String?
-    createdAt      DateTime       @default(now())
-    updatedAt      DateTime       @updatedAt
-    deletedAt      DateTime?
-    authSecurities authSecurity?
-    loginHistories LoginHistory[]
-    emails         Emails[]
-    phoneNumbers   PhoneNumbers[]
-    jwtSessions    JwtSession[]
-    emailHistories EmailHistory[]
+  id             String         @id @default(dbgenerated("uuidv7()"))
+  email          String         @unique
+  username       String         @unique
+  firstName      String
+  lastName       String?        @default("")
+  phoneNumber    String?
+  password       String
+  verified       Boolean        @default(false)
+  status         userStatus     @default(PENDING_VERIFICATION)
+  provider       String         @default("local")
+  providerId     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+  roleId         Int
+  role           Role           @relation("UserRoles", fields: [roleId], references: [id])
+  authSecurities authSecurity?
+  loginHistories LoginHistory[]
+  emails         Emails[]
+  phoneNumbers   PhoneNumbers[]
+  jwtSessions    JwtSession[]
+  emailHistories EmailHistory[]
+  posts          Post[]         @relation("UserPosts")
 
-    @@index([email])
-    @@index([username])
-    @@index([providerId])
+  @@index([email])
+  @@index([username])
+  @@index([providerId])
 }
 
 model Emails {
-    id        String   @id @default(dbgenerated("uuidv7()"))
-    userId    String
-    email     String   @unique
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(dbgenerated("uuidv7()"))
+  userId    String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@index([userId])
+  @@index([userId])
 }
 
 model PhoneNumbers {
-    id          String   @id @default(dbgenerated("uuidv7()"))
-    userId      String
-    phoneNumber String   @unique
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+  id          String   @id @default(dbgenerated("uuidv7()"))
+  userId      String
+  phoneNumber String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@index([userId])
+  @@index([userId])
 }
 
 model authSecurity {
-    id                            String     @id @default(dbgenerated("uuidv7()"))
-    userId                        String     @unique
-    sentVerificationEmailAttempts Int        @default(0)
-    verificationSecret            String?
-    verificationSecretStatues verification_secret_status? @default(fresh)
-    lastVerificationEmailSentAt   DateTime?
-    failedLoginAttempts           Int        @default(0)
-    lastFailedLogin               DateTime?
-    lockoutUntil                  DateTime?
-    lastLogin                     DateTime?
-    lastLogout                    DateTime?
-    lastPasswordChange            DateTime?
-    mfaEnabled                    Boolean    @default(false)
-    mfaMethod                     mfaMethod? @default(otp)
-    mfaSecret                     String?
-    sentMfaSecretAttempts         Int        @default(0)
-    createdAt                     DateTime   @default(now())
-    updatedAt                     DateTime   @updatedAt
+  id                            String                      @id @default(dbgenerated("uuidv7()"))
+  userId                        String                      @unique
+  sentVerificationEmailAttempts Int                         @default(0)
+  verificationSecret            String?
+  verificationSecretStatues     verification_secret_status? @default(fresh)
+  lastVerificationEmailSentAt   DateTime?
+  failedLoginAttempts           Int                         @default(0)
+  lastFailedLogin               DateTime?
+  lockoutUntil                  DateTime?
+  lastLogin                     DateTime?
+  lastLogout                    DateTime?
+  lastPasswordChange            DateTime?
+  mfaEnabled                    Boolean                     @default(false)
+  mfaMethod                     mfaMethod?                  @default(otp)
+  mfaSecret                     String?
+  sentMfaSecretAttempts         Int                         @default(0)
+  createdAt                     DateTime                    @default(now())
+  updatedAt                     DateTime                    @updatedAt
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@index([userId])
+  @@index([userId])
 }
 
 model JwtSession {
-    id             String   @id @default(dbgenerated("uuidv7()"))
-    userId         String
-    loginHistoryId String
-    jti            String   @unique
-    createdAt      DateTime @default(now())
-    expiresAt      DateTime
-    isValid        Boolean  @default(true)
+  id             String   @id @default(dbgenerated("uuidv7()"))
+  userId         String
+  loginHistoryId String
+  jti            String   @unique
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+  isValid        Boolean  @default(true)
 
-    user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-    loginHistory LoginHistory @relation(fields: [loginHistoryId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loginHistory LoginHistory @relation(fields: [loginHistoryId], references: [id], onDelete: Cascade)
 
-    @@index([userId, loginHistoryId])
-    @@index([jti])
+  @@index([userId, loginHistoryId])
+  @@index([jti])
 }

@@ -15,6 +15,7 @@ import {
 import { AuthUtilsService } from '../common/services/auth.utils.service';
 import { AppLoggerService } from 'src/common/modules/logger/logger.service';
 import { VerifyEmailDTO } from './dto/verify-email.dto';
+import { RCreatedUser } from 'src/domain/user/responses/created-user.response';
 @Injectable()
 export class AuthService {
   constructor(
@@ -38,7 +39,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async signUp(signUpDto: SignUpDTO) {
+  async signUp(signUpDto: SignUpDTO): Promise<RCreatedUser> {
     const { user, verificationSecret, emailHistoryId } =
       await this.userService.createUser(signUpDto);
     const fullName = `${user.firstName} ${user.lastName}`;
@@ -82,7 +83,7 @@ export class AuthService {
       firstName: user.firstName,
       lastName: user.lastName,
       username: user.username,
-      role: user.role,
+      role: user.role, // TODO: change later when we have roles implemented
       status: user.status,
     } satisfies IUserPayload;
     const { accessToken, refreshToken } = await this.signInToken(userPayload);

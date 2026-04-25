@@ -6,6 +6,8 @@ import { UserService } from 'src/domain/user/user.service';
 import { YcI18nService } from 'src/common/modules/yc-i18n/yc-i18n.service';
 import AppError from 'src/common/errors/app.error';
 import { JwtPayload } from './interfaces/jwt.interface';
+import { cookieExtractor } from 'src/utils/cookies.utils';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,7 +16,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly ycI18nService: YcI18nService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request) => cookieExtractor(req, 'accessToken'),
+      ]),
       ignoreExpiration: false,
       secretOrKey: env.JWT_SECRET,
     });

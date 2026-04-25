@@ -10,6 +10,7 @@ import { email_status, email_type } from 'src/generated/prisma/enums';
 import { VerifyEmailDTO } from 'src/auth/dto/verify-email.dto';
 import { AppConfig } from 'src/common/config/app.config';
 import { AppLoggerService } from 'src/common/modules/logger/logger.service';
+import { RCreatedUser } from './responses/created-user.response';
 
 @Injectable()
 export class UserService {
@@ -141,7 +142,7 @@ export class UserService {
     const currentDate = new Date(); // use constant currentDate to ensure the same value is used for both the authSecurity and emailHistory records
     const [user, emailHistoryId] = await this.prismaService.$transaction(
       async (tx) => {
-        const user = await tx.user.create({
+        const user = (await tx.user.create({
           data: {
             email,
             password: await this.hashPassword(password),
@@ -149,6 +150,7 @@ export class UserService {
             lastName,
             username,
             providerId,
+            roleId: 1, // TODO: change later when we have roles implemented
           },
           select: {
             id: true,
@@ -157,7 +159,7 @@ export class UserService {
             lastName: true,
             username: true,
           },
-        });
+        })) as RCreatedUser;
         await tx.authSecurity.create({
           data: {
             userId: user.id,

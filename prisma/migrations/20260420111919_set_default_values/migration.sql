@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Permission" ALTER COLUMN "action" SET DEFAULT 'READ',
+ALTER COLUMN "subject" SET DEFAULT 'ALL';

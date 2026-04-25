@@ -16,23 +16,7 @@ import AppError from '../errors/app.error';
 import { PrismaClientKnownRequestError } from 'src/generated/prisma/internal/prismaNamespace';
 import { YcI18nService } from '../modules/yc-i18n/yc-i18n.service';
 import { I18nPath } from 'src/i18n/i18n.generated';
-
-interface ExceptionResponse {
-  status: 'error';
-  statusCode: number;
-  timestamp: string;
-  message: string;
-  error: string;
-  fields?: string | string[] | Record<string, any>;
-  errors?: unknown;
-  isOperational: boolean;
-  name: string;
-  stack?: string;
-  code?: string;
-  url: string;
-  method: string;
-  [key: string]: any; // Allow additional properties
-}
+import { ExceptionResponse } from '../api-response/exception.response';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {

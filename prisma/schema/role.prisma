@@ -1,0 +1,24 @@
+model Role {
+    id          Int          @id @default(autoincrement())
+    name        String       @unique
+    description String?
+    permissions Permission[] @relation("RolePermissions")
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+    users       User[]       @relation("UserRoles")
+}
+
+model Permission {
+    id         Int      @id @default(autoincrement())
+    action     String   @default("READ") // e.g., 'read', 'update', 'manage'
+    subject    String   @default("ALL") // e.g., 'Post', 'User', 'all'
+    conditions Json? // ABAC magic: { ownerId: '{{ user.id }}' } – templated
+    inverted   Boolean  @default(false)
+    reason     String? // Audit trail: "Owner-only update"
+    role       Role     @relation("RolePermissions", fields: [roleId], references: [id])
+    roleId     Int
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@unique([roleId, action, subject])
+}

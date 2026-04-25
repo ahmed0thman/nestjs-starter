@@ -3,27 +3,27 @@
 // ================================
 
 model LoginHistory {
-    id            String      @id @default(dbgenerated("uuidv7()"))
-    userId        String
-    action        loginAction
-    ipAddress     String?
-    userAgent     String?
-    device_id     String?
-    geoCountry    String?
-    GeoCity       String?
-    GeoLatitude   Float?
-    GeoLongitude  Float?
-    success       Boolean
-    attemptNumber Int         @default(1)
-    failureReason String?
-    isSuspicious  Boolean     @default(false)
-    createdAt     DateTime    @default(now())
+  id            String      @id @default(dbgenerated("uuidv7()"))
+  userId        String
+  action        loginAction
+  ipAddress     String?
+  userAgent     String?
+  device_id     String?
+  geoCountry    String?
+  GeoCity       String?
+  GeoLatitude   Float?
+  GeoLongitude  Float?
+  success       Boolean
+  attemptNumber Int         @default(1)
+  failureReason String?
+  isSuspicious  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
 
-    user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-    jwtSessions JwtSession[]
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jwtSessions JwtSession[]
 
-    @@index([userId, action])
-    @@index([device_id])
+  @@index([userId, action])
+  @@index([device_id])
 }
 
 // ================================
@@ -31,24 +31,24 @@ model LoginHistory {
 // ================================
 
 model EmailHistory {
-    id            String          @id @default(uuid())
-    authId        String
-    emailTo       String
-    emailType     email_type
-    subject       String
-    emailProvider email_provider? @default(smtp)
-    messageId     String //
-    emailStatus   email_status    @default(pending)
-    retry_count   Int             @default(0)
-    ipAddress     String?
-    userAgent     String?
-    sentAt        DateTime        @default(now())
-    errorMessage  String?
-    createdAt     DateTime        @default(now())
+  id            String          @id @default(uuid())
+  authId        String
+  emailTo       String
+  emailType     email_type
+  subject       String
+  emailProvider email_provider? @default(smtp)
+  messageId     String //
+  emailStatus   email_status    @default(pending)
+  retry_count   Int             @default(0)
+  ipAddress     String?
+  userAgent     String?
+  sentAt        DateTime        @default(now())
+  errorMessage  String?
+  createdAt     DateTime        @default(now())
 
-    // Relations
-    authUser User @relation(fields: [authId], references: [id], onDelete: Cascade)
+  // Relations
+  authUser User @relation(fields: [authId], references: [id], onDelete: Cascade)
 
-    @@unique([authId, messageId, sentAt])
-    @@index([messageId])
+  @@unique([authId, messageId, sentAt])
+  @@index([messageId])
 }

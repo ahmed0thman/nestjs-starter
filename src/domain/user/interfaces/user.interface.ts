@@ -1,4 +1,4 @@
-import { authSecurity, User } from 'src/generated/prisma/client';
+import { authSecurity, Role, User } from 'src/generated/prisma/client';
 
 export interface IUserValidated extends Pick<
   User,
@@ -8,7 +8,6 @@ export interface IUserValidated extends Pick<
   | 'lastName'
   | 'username'
   | 'password'
-  | 'role'
   | 'status'
   | 'verified'
 > {
@@ -22,4 +21,5 @@ export interface IUserValidated extends Pick<
     | 'mfaEnabled'
     | 'mfaMethod'
   >;
+  role: Pick<Role, 'id' | 'name'>;
 }
