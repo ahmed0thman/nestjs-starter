@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { type Role } from 'src/generated/prisma/client';
 import { userStatus } from 'src/generated/prisma/enums';
 
-export class IUserPayload {
+export class JWTUserPayload {
   @ApiProperty({
     description: 'User ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
@@ -35,9 +35,12 @@ export class IUserPayload {
   username!: string;
   @ApiProperty({
     description: 'User role',
-    example: 'USER',
+    example: {
+      id: '1',
+      name: 'admin',
+    },
   })
-  role!: Role;
+  role!: Pick<Role, 'id' | 'name'>;
   @ApiProperty({
     description: 'User status',
     example: 'ACTIVE',
@@ -45,7 +48,7 @@ export class IUserPayload {
   status!: userStatus;
 }
 
-export class ITokensPayload {
+export class TokensPayload {
   @ApiProperty({
     description: 'Access token',
     example:
@@ -60,13 +63,13 @@ export class ITokensPayload {
   refreshToken!: string;
 }
 
-export class IAuthUser {
+export class AuthUserPayload {
   @ApiProperty({
     description: 'Authenticated user',
   })
-  user!: IUserPayload;
+  user!: JWTUserPayload;
   @ApiProperty({
     description: 'Authentication tokens',
   })
-  token!: ITokensPayload;
+  token!: TokensPayload;
 }
