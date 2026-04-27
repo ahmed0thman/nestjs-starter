@@ -11,6 +11,9 @@ import { VerifyEmailDTO } from 'src/auth/dto/verify-email.dto';
 import { AppConfig } from 'src/common/config/app.config';
 import { AppLoggerService } from 'src/common/modules/logger/logger.service';
 import { RCreatedUser } from './responses/created-user.response';
+import { userValidatedSelect } from './payloads/user.payloads';
+import { RUserFound } from './responses/user-found.response';
+import { RUserValidated } from './responses/user-validated.response';
 
 @Injectable()
 export class UserService {
@@ -41,6 +44,12 @@ export class UserService {
     return `${timestampPrefix}${separatorPrefix}${firstname}${lastname ? separatorSuffix + lastname : ''}${separatorSuffix}${suffix}`;
   }
 
+  /**
+   * Verify if the provided plain password matches the hashed password
+   * @param hashedPassword
+   * @param plainPassword
+   * @returns
+   */
   private async verifyPassword(
     hashedPassword: string,
     plainPassword: string,
@@ -48,60 +57,44 @@ export class UserService {
     return await argon2.verify(hashedPassword, plainPassword);
   }
 
+  /**
+   * Hash a plain password
+   * @param password
+   * @returns
+   */
   async hashPassword(password: string): Promise<string> {
     return await argon2.hash(password);
   }
 
-  async findUserById(id: string) {
-    return await this.prismaService.user.findUnique({
+  /**
+   * Find a user by their ID
+   * @param id
+   * @returns
+   */
+  async findUserById(id: string): Promise<RUserFound> {
+    const user = await this.prismaService.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        username: true,
-        role: true,
-        status: true,
-        verified: true,
-        authSecurities: {
-          select: {
-            lastPasswordChange: true,
-          },
-        },
-      },
+      select: userValidatedSelect,
     });
+    if (!user)
+      throw AppError.notFound(this.ycI18nService.t('errors.user_not_found'));
+    return user as RUserFound;
   }
 
-  async validateUser(email: string, password: string) {
+  /**
+   * Validate a user's credentials
+   * @param email
+   * @param password
+   * @returns
+   */
+  async validateUser(email: string, password: string): Promise<RUserValidated> {
     if (!email)
       throw AppError.badRequest(
         this.ycI18nService.t('errors.invalid_credentials'),
       );
     const user = await this.prismaService.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        username: true,
-        password: true,
-        role: true,
-        status: true,
-        verified: true,
-        authSecurities: {
-          select: {
-            id: true,
-            failedLoginAttempts: true,
-            lastFailedLogin: true,
-            lockoutUntil: true,
-            lastPasswordChange: true,
-            mfaEnabled: true,
-            mfaMethod: true,
-          },
-        },
-      },
+      select: userValidatedSelect,
     });
 
     // if user not found or incorrect password, use fake hash to prevent timing attacks
@@ -126,12 +119,14 @@ export class UserService {
       );
     }
 
-    // TODO: implement login history and failed login attempts tracking for account lockout and security monitoring
-
-    return user;
+    return user as RUserValidated;
   }
 
-  // return selected fields id, email, firstName, lastName, username
+  /**
+   * Create a new user
+   * @param createUserDto
+   * @returns
+   */
   async createUser(createUserDto: CreateUserDTO) {
     const { email, password, firstName, lastName, providerId } = createUserDto;
     const username = this.createRandomInitialUserName(firstName, lastName);
@@ -188,7 +183,12 @@ export class UserService {
     return { user, verificationSecret, emailHistoryId };
   }
 
-  // update email history status to sent or failed
+  /**
+   * Update the status of an email history record
+   * @param emailHistoryId
+   * @param status
+   * @returns
+   */
   async updateEmailHistoryStatus(emailHistoryId: string, status: email_status) {
     await this.prismaService.emailHistory.update({
       where: { id: emailHistoryId },
@@ -198,6 +198,11 @@ export class UserService {
     });
   }
 
+  /**
+   * Verify a user's email address
+   * @param verifyEmailDTO
+   * @returns
+   */
   async verifyEmail(verifyEmailDTO: VerifyEmailDTO) {
     const { userId, secret } = verifyEmailDTO;
     const hashedSecret = this.authUtilsService.hashToken(secret);
