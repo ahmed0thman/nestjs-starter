@@ -29,6 +29,7 @@ export type I18nTranslations = {
         "name": string;
     };
     "messages": {
+        "success": string;
         "account": {
             "created": string;
             "updated": string;

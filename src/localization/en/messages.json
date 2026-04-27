@@ -1,4 +1,5 @@
 {
+  "success": "Success",
   "account": {
     "created": "Your account has been created successfully.",
     "updated": "Your account has been updated successfully.",
