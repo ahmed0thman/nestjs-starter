@@ -31,6 +31,7 @@
     "@nestjs/swagger": "^11.3.0",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
+    "@prisma/sqlcommenter-query-insights": "^7.8.0",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.0.6",
     "@react-email/tailwind": "^2.0.7",
