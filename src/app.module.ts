@@ -16,6 +16,9 @@ import {
 import { YcI18nModule } from './common/modules/yc-i18n/yc-i18n.module';
 import * as path from 'path';
 import { ResponseTransformerInterceptor } from './common/interceptors/response-transformer.interceptor';
+import { CaslModule } from './common/modules/casl/casl.module';
+import { CaslGuard } from './common/modules/casl/casl.guard';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -35,6 +38,7 @@ import { ResponseTransformerInterceptor } from './common/interceptors/response-t
     DomainModule,
     MailModule,
     YcI18nModule,
+    CaslModule,
   ],
   providers: [
     {
@@ -44,6 +48,14 @@ import { ResponseTransformerInterceptor } from './common/interceptors/response-t
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseTransformerInterceptor,
+    },
+    {
+      provide: 'APP_GUARD',
+      useExisting: JwtAuthGuard,
+    },
+    {
+      provide: 'APP_GUARD',
+      useExisting: CaslGuard,
     },
   ],
 })

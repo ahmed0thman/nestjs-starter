@@ -18,6 +18,17 @@ import { YcI18nService } from '../modules/yc-i18n/yc-i18n.service';
 import { I18nPath } from 'src/i18n/i18n.generated';
 import { ExceptionResponse } from '../api-response/exception.response';
 
+const urlsToIgnore = [
+  '/favicon.ico',
+  '/.well-known/appspecific/com.chrome.devtools.json',
+  // '/.well-known/assetlinks.json',
+  // '/.well-known/security.txt',
+  // '/.well-known/manifest.json',
+  // '/.well-known/robots.txt',
+  // '/.well-known/humans.txt',
+  // '/.well-known/apple-app-site-association',
+];
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   constructor(
@@ -33,7 +44,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     // Ignore favicon requests - this is normal browser behavior
-    if (request.url === '/favicon.ico') {
+    if (urlsToIgnore.includes(request.url) && request.method === 'GET') {
       response.status(204).end();
       return;
     }

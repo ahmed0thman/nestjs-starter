@@ -1,13 +1,16 @@
-import { Controller, Get, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Request } from '@nestjs/common';
 import { Request as REQ } from 'express';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ApiSuccessResponse } from 'src/common/api-response/success.response';
+import { CheckAbilities } from 'src/common/decorators/abilities.decorator';
 import { User } from 'src/generated/prisma/client';
 
 @Controller('user')
 export class UserController {
-  @UseGuards(JwtAuthGuard)
   @Get('profile')
+  @CheckAbilities({
+    action: 'read',
+    subject: 'User',
+  })
   getProfile(
     @Request() req: REQ & { user: User },
   ): ApiSuccessResponse<Partial<User>> {

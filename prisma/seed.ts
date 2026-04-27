@@ -21,13 +21,13 @@ const permissions = [
     roleId: 2,
     action: 'update',
     subject: 'Post',
-    conditions: { ownerId: '{{ user.id }}' },
+    conditions: { field: 'ownerId', operator: '$eq', valueSource: 'id' },
   }, // Templated condition
   {
     roleId: 2,
     action: 'update',
     subject: 'Post',
-    conditions: { published: false },
+    conditions: { field: 'published', operator: '$eq', valueSource: false },
   }, // Unpublished only
   // Viewer: Read all
   { roleId: 3, action: 'read', subject: 'Post', conditions: {} },
@@ -42,11 +42,8 @@ async function main() {
     });
   }
   for (const perm of permissions) {
-    const { roleId, action, subject } = perm;
-    await prisma.permission.upsert({
-      where: { roleId_action_subject: { roleId, action, subject } },
-      create: perm,
-      update: perm,
+    await prisma.permission.create({
+      data: perm,
     });
   }
   // Add users...
