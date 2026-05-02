@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { EnvModule } from './common/config/env/env.module';
 import { AuthModule } from './auth/auth.module';
 import { DomainModule } from './domain/domain.module';
@@ -19,6 +19,7 @@ import { ResponseTransformerInterceptor } from './common/interceptors/response-t
 import { CaslModule } from './common/modules/casl/casl.module';
 import { CaslGuard } from './common/modules/casl/casl.guard';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { RequestMetadataMiddleware } from './common/middleware/request-metadata.middleware';
 
 @Module({
   imports: [
@@ -59,4 +60,8 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestMetadataMiddleware).forRoutes('*');
+  }
+}

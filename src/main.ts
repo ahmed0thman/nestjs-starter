@@ -7,6 +7,8 @@ import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
   // set global prefix for all routes
   const globalPrefix = `api/${env.API_VERSION}`;
   app.setGlobalPrefix(globalPrefix);
@@ -21,6 +23,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(`${globalPrefix}/docs`, app, document);
 
-  await app.listen(env.PORT ?? 3000);
+  await app.listen(env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();
