@@ -8,11 +8,11 @@ model LoginHistory {
   action        loginAction
   ipAddress     String?
   userAgent     String?
-  device_id     String?
+  deviceId      String?
   geoCountry    String?
-  GeoCity       String?
-  GeoLatitude   Float?
-  GeoLongitude  Float?
+  geoCity       String?
+  geoLatitude   Float?
+  geoLongitude  Float?
   success       Boolean
   attemptNumber Int         @default(1)
   failureReason String?
@@ -23,7 +23,7 @@ model LoginHistory {
   jwtSessions JwtSession[]
 
   @@index([userId, action])
-  @@index([device_id])
+  @@index([deviceId])
 }
 
 // ================================
