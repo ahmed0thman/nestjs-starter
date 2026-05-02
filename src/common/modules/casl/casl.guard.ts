@@ -46,6 +46,7 @@ export class CaslGuard implements CanActivate {
       );
       const { action, subject: entity } = rule;
 
+      this.logger.log(`Checking ${JSON.stringify(ability.rules)}`, 'CaslGuard');
       if (entity === 'all') {
         ForbiddenError.from(ability)
           .setMessage(this.ycI18nService.t('errors.forbidden'))

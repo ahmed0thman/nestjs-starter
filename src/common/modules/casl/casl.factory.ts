@@ -47,8 +47,12 @@ export class CaslFactory {
             typeof perm.conditions.valueSource === 'boolean')
         ) {
           const { field, operator, valueSource } = perm.conditions;
+          const valueSourceKey =
+            String(valueSource) in user
+              ? (valueSource as keyof RUserFound)
+              : null;
           conditions[field] = {
-            [operator]: valueSource,
+            [operator]: valueSourceKey ? user[valueSourceKey] : valueSource,
           };
         }
       }
