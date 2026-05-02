@@ -1,11 +1,31 @@
 model Post {
-    id        Int      @id @default(autoincrement())
-    title     String
-    content   String?
-    published Boolean  @default(false)
-    owner     User     @relation("UserPosts", fields: [ownerId], references: [id])
-    ownerId   String
-    createdAt DateTime @default(now())
+    id          Int          @id @default(autoincrement())
+    title       String
+    content     String
+    published   Boolean      @default(false)
+    owner       User         @relation("UserPosts", fields: [ownerId], references: [id])
+    ownerId     String
+    publishedAt DateTime?
+    isEdited    Boolean      @default(false)
+    isDeleted   Boolean      @default(false)
+    isReported  Boolean      @default(false)
+    reports     PostReport[] @relation("PostReports")
+    isBlocked   Boolean      @default(false)
+    isBlockedAt DateTime?
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
 
     @@index([ownerId, id])
+}
+
+model PostReport {
+    id         Int      @id @default(autoincrement())
+    post       Post     @relation("PostReports", fields: [postId], references: [id])
+    postId     Int
+    reporter   User     @relation("UserReports", fields: [reporterId], references: [id])
+    reporterId String
+    reason     String?
+    createdAt  DateTime @default(now())
+
+    @@index([postId, reporterId])
 }

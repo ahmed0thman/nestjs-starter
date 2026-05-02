@@ -6,31 +6,51 @@ import { Prisma } from 'src/generated/prisma/client';
 const prisma = new PrismaService();
 
 const roles: Prisma.RoleCreateInput[] = [
+  { name: 'Super Admin', description: 'System Cardinal' },
   { name: 'Admin', description: 'Full access' },
-  { name: 'Editor', description: 'Content management' },
-  { name: 'Viewer', description: 'Read-only' },
+  { name: 'User', description: 'Standard user' },
 ];
 
 const permissions = [
-  // Admin: God mode
+  // Super Admin: God mode
   { roleId: 1, action: 'manage', subject: 'all', conditions: {} },
-  // Editor: Read/write own posts, read all
-  { roleId: 2, action: 'read', subject: 'Post', conditions: {} },
-  { roleId: 2, action: 'manage', subject: 'Post', conditions: {} }, // All posts for manage? Wait, condition below
+  // Admin: manage all users and posts, but cannot delete published posts
   {
     roleId: 2,
-    action: 'update',
+    action: 'manage',
+    subject: 'Post',
+    conditions: {},
+  },
+  {
+    roleId: 2,
+    action: 'delete',
+    subject: 'Post',
+    inverted: true,
+    conditions: { field: 'published', operator: '$eq', valueSource: true },
+  },
+  // User: Manage own profile
+  {
+    roleId: 3,
+    action: 'manage',
+    subject: 'User',
+    conditions: { field: 'id', operator: '$eq', valueSource: 'id' },
+  },
+
+  // User: Manage own posts, read all published posts
+  {
+    roleId: 3,
+    action: 'manage',
     subject: 'Post',
     conditions: { field: 'ownerId', operator: '$eq', valueSource: 'id' },
-  }, // Templated condition
+  },
+
+  // User: Read all Published posts, (More specific permissions comes later)
   {
-    roleId: 2,
-    action: 'update',
+    roleId: 3,
+    action: 'read',
     subject: 'Post',
-    conditions: { field: 'published', operator: '$eq', valueSource: false },
-  }, // Unpublished only
-  // Viewer: Read all
-  { roleId: 3, action: 'read', subject: 'Post', conditions: {} },
+    conditions: { field: 'published', operator: '$eq', valueSource: true },
+  },
 ];
 
 async function main() {

@@ -21,6 +21,7 @@ model User {
   phoneNumbers   PhoneNumbers[]
   jwtSessions    JwtSession[]
   emailHistories EmailHistory[]
+  reports        PostReport[]   @relation("UserReports")
   posts          Post[]         @relation("UserPosts")
 
   @@index([email])
