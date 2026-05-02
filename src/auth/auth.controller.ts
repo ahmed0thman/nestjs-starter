@@ -1,10 +1,10 @@
-import { Body, Controller, Patch, Post, Res } from '@nestjs/common';
+import { Body, Controller, Patch, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDTO } from './dto/sign-up.dto';
 import { RCreatedUser } from 'src/domain/user/responses/created-user.response';
 import { YcI18nService } from 'src/common/modules/yc-i18n/yc-i18n.service';
 import { AuthCredentialsDTO } from './dto/auth-credentials.dto';
-import { type Response } from 'express';
+import { type Request, type Response } from 'express';
 import { JWTUserPayload, TokensPayload } from './payloads/auth.payload';
 import { env } from 'src/common/config/env/env';
 import { Public } from 'src/common/decorators/public-route.decorator';
@@ -14,6 +14,7 @@ import { ApiSuccessResponse } from 'src/common/api-response/success.response';
 import { ApiOperation } from '@nestjs/swagger';
 import { ApiSuccessResponseDecorator } from 'src/common/decorators/api-response.decorators';
 import { cookieExtractor } from 'src/utils/cookies.utils';
+import { RequestMetadata } from 'src/utils/request-metadata.utils';
 @Controller('/auth')
 export class AuthController {
   constructor(
@@ -91,9 +92,16 @@ export class AuthController {
   @Post('/sign-in')
   async signIn(
     @Body() authCredentials: AuthCredentialsDTO,
+    @Req() req: Request & { metadata: RequestMetadata },
     @Res({ passthrough: true }) res: Response,
   ): Promise<ApiSuccessResponse<JWTUserPayload>> {
-    const data = await this.authService.signIn(authCredentials);
+    console.log({
+      ip: req.ip,
+      headers: req.headers,
+      remoteAddress: req.socket.remoteAddress,
+    });
+    const meta = req.metadata;
+    const data = await this.authService.signIn(authCredentials, meta);
     this.setTokensOnCookies(res, data.token);
     return {
       message: this.ycI18nService.t('messages.account.login'),

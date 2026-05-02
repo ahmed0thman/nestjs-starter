@@ -9,6 +9,7 @@ import { env } from 'src/common/config/env/env';
 import { JwtStrategy } from './jwt.strategy';
 import { AuthUtilsService } from '../common/services/auth.utils.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { PrismaService } from 'src/common/services/prisma.service';
 
 @Module({
   imports: [
@@ -24,7 +25,13 @@ import { JwtAuthGuard } from './jwt-auth.guard';
       global: true, // Make the JwtModule available globally, so you don't need to import it in other modules
     }),
   ],
-  providers: [AuthService, AuthUtilsService, JwtStrategy, JwtAuthGuard],
+  providers: [
+    AuthService,
+    AuthUtilsService,
+    JwtStrategy,
+    JwtAuthGuard,
+    PrismaService,
+  ],
   controllers: [AuthController],
   exports: [JwtAuthGuard],
 })

@@ -20,6 +20,8 @@ import { userStatus } from 'src/generated/prisma/enums';
 import { JwtPayload } from './payloads/jwt.payload';
 import { RUserFound } from 'src/domain/user/responses/user-found.response';
 import AppError from 'src/common/errors/app.error';
+import { PrismaService } from 'src/common/services/prisma.service';
+import { RequestMetadata } from 'src/utils/request-metadata.utils';
 @Injectable()
 export class AuthService {
   constructor(
@@ -29,6 +31,7 @@ export class AuthService {
     private readonly ycI18nService: YcI18nService,
     private readonly authUtilsService: AuthUtilsService,
     private readonly logger: AppLoggerService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   /**
@@ -115,11 +118,55 @@ export class AuthService {
    * @param authCredentials
    * @returns
    */
-  async signIn(authCredentials: AuthCredentialsDTO): Promise<AuthUserPayload> {
+  async signIn(
+    authCredentials: AuthCredentialsDTO,
+    requestMeta: RequestMetadata,
+  ): Promise<AuthUserPayload> {
     const { email, password } = authCredentials;
     const user = await this.userService.validateUser(email, password);
+
+    const { user: jwtUserPayload, token } =
+      await this.buildAuthUserPayload(user);
     // TODO: implement login history and failed login attempts tracking for account lockout and security monitoring
-    return await this.buildAuthUserPayload(user);
+    // create a login history
+    console.log({ requestMeta });
+    const loginHistory = await this.prismaService.loginHistory.create({
+      data: {
+        userId: user.id,
+        action: 'login',
+        ipAddress: requestMeta.ipAddress,
+        userAgent: requestMeta.userAgent,
+        // device: requestMeta.device,
+        deviceId: requestMeta.deviceId,
+        geoCountry: requestMeta.geoCountry,
+        geoCity: requestMeta.geoCity,
+        geoLatitude: Number(requestMeta.geoLatitude),
+        geoLongitude: Number(requestMeta.geoLongitude),
+        success: true,
+        // isSecure: requestMeta.isSecure,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    // create a JWt session in the DB with the jti
+    // decode the refresh token to get the jti
+    const decodedRefreshToken: JwtPayload = await this.jwtService.decode(
+      token.refreshToken,
+      { json: true },
+    );
+    const jti = decodedRefreshToken.jti;
+    // save the jti in the database with the user id and expiration time
+    await this.prismaService.jwtSession.create({
+      data: {
+        loginHistoryId: loginHistory.id,
+        jti,
+        userId: user.id,
+        expiresAt: new Date(decodedRefreshToken.exp * 1000),
+      },
+    });
+    return { user: jwtUserPayload, token };
   }
 
   /**
