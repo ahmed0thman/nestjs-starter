@@ -22,5 +22,17 @@
     "account_unlocked": "Your account has been unlocked. You can now log in.",
     "suspended": "Your account has been suspended. Please contact support for more information.",
     "unsuspended": "Your account has been unsuspended. You can now log in."
+  },
+  "post": {
+    "created": "Your post has been created successfully and is pending review.",
+    "published": "Your post has been published successfully.",
+    "updated": "Your post has been updated successfully.",
+    "deleted": "Your post has been deleted successfully.",
+    "rejected": "Your post has been rejected. Please review the feedback and try again.",
+    "reported": "The post has been reported successfully. Our team will review it shortly.",
+    "not_found": "The post you are looking for does not exist.",
+    "already_reported": "You have already reported this post.",
+    "blocked": "The post has been blocked due to multiple reports. It is no longer visible to users.",
+    "unblocked": "The post has been unblocked and is now visible to users."
   }
 }

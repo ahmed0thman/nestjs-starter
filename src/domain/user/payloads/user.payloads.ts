@@ -1,4 +1,6 @@
-export const userValidatedSelect = {
+import { UserSelect } from 'src/generated/prisma/models';
+
+export const userValidatedSelect: UserSelect = {
   id: true,
   email: true,
   firstName: true,
@@ -26,7 +28,7 @@ export const userValidatedSelect = {
   },
 } as const;
 
-export const userFoundSelect = {
+export const userFoundSelect: UserSelect = {
   id: true,
   email: true,
   firstName: true,
@@ -45,4 +47,4 @@ export const userFoundSelect = {
       lastPasswordChange: true,
     },
   },
-};
+} as const;

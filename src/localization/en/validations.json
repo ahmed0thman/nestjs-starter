@@ -24,5 +24,15 @@
     "is_required": "The verification code is required",
     "invalid": "The verification code is invalid",
     "expired": "The verification code has expired"
+  },
+  "title": {
+    "is_required": "The title is required",
+    "is_string": "The title must be a string",
+    "length": "The title must be between 5 and 100 characters"
+  },
+  "content": {
+    "is_required": "The content is required",
+    "is_string": "The content must be a string",
+    "length": "The content must be between 10 and 5000 characters"
   }
 }

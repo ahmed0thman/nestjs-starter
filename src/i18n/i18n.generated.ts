@@ -53,6 +53,18 @@ export type I18nTranslations = {
             "suspended": string;
             "unsuspended": string;
         };
+        "post": {
+            "created": string;
+            "published": string;
+            "updated": string;
+            "deleted": string;
+            "rejected": string;
+            "reported": string;
+            "not_found": string;
+            "already_reported": string;
+            "blocked": string;
+            "unblocked": string;
+        };
     };
     "validations": {
         "email": {
@@ -80,6 +92,16 @@ export type I18nTranslations = {
             "is_required": string;
             "invalid": string;
             "expired": string;
+        };
+        "title": {
+            "is_required": string;
+            "is_string": string;
+            "length": string;
+        };
+        "content": {
+            "is_required": string;
+            "is_string": string;
+            "length": string;
         };
     };
 };
