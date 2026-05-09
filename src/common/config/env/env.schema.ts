@@ -8,6 +8,7 @@ export const envSchema = z.object({
   APP_NAME: z.string().default('nestjs-starter'),
   APP_URL: z.string().default('http://localhost:3000'),
   PORT: z.string().regex(/^\d+$/, 'PORT must be a number').default('3000'),
+  // Database configuration
   DATABASE_URL: z.url(),
   DATABASE_USERNAME: z.string().default('user'),
   DATABASE_PASSWORD: z.string().default('password'),
@@ -17,9 +18,19 @@ export const envSchema = z.object({
     .string()
     .regex(/^\d+$/, 'DATABASE_PORT must be a number')
     .default('5433'),
+  // Authentication configuration
   JWT_SECRET: z.string(),
   JWT_ACCESS_TOKEN_EXP: z.any().default('30m'),
   JWT_REFRESH_TOKEN_EXP: z.any().default('7d'), // as we well use refresh token rotation, we can set a short expiration time for refresh tokens
+  FAKE_PASSWORD: z.string().default('fakepassword'),
+  FAKE_HASHED_PASSWORD: z
+    .string()
+    .default(
+      '$argon2id$v=19$m=65536,t=3,p=4$Z3Vlc3R1c2VyLXNlbHRlZC1oYXNo$Z3Vlc3R1c2VyLXNlbHRlZC1oYXNo',
+    ),
+  MaxFailedLoginAttempts: z.number().positive().gt(0).default(3),
+  LockOutDurationMinutes: z.number().positive().gt(0).default(15),
+  // Email Service configuration
   NODE_MAILER_HOST: z.string(),
   NODE_MAILER_PORT: z
     .string()
@@ -27,9 +38,4 @@ export const envSchema = z.object({
   NODE_MAILER_USER: z.string(),
   NODE_MAILER_PASS: z.string(),
   EMAIL_FROM: z.string().default('noreply@example.com'),
-  FAKE_HASHED_PASSWORD: z
-    .string()
-    .default(
-      '$argon2id$v=19$m=65536,t=3,p=4$Z3Vlc3R1c2VyLXNlbHRlZC1oYXNo$Z3Vlc3R1c2VyLXNlbHRlZC1oYXNo',
-    ),
 });

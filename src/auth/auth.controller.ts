@@ -8,7 +8,7 @@ import { type Request, type Response } from 'express';
 import { JWTUserPayload, TokensPayload } from './payloads/auth.payload';
 import { env } from 'src/common/config/env/env';
 import { Public } from 'src/common/decorators/public-route.decorator';
-import { AuthUtilsService } from 'src/common/services/auth.utils.service';
+import { AuthUtilsService } from 'src/auth/auth.utils.service';
 import { VerifyEmailDTO } from './dto/verify-email.dto';
 import { ApiSuccessResponse } from 'src/common/api-response/success.response';
 import { ApiOperation } from '@nestjs/swagger';

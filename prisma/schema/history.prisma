@@ -4,22 +4,26 @@
 
 model LoginHistory {
   id            String      @id @default(dbgenerated("uuidv7()"))
-  userId        String
+  userId        String?
   action        loginAction
   ipAddress     String?
   userAgent     String?
+  device        String?
   deviceId      String?
+  deviceType    String?
+  os            String?
+  browser       String?
   geoCountry    String?
   geoCity       String?
   geoLatitude   Float?
   geoLongitude  Float?
+  isSecure      Boolean     @default(false)
   success       Boolean
-  attemptNumber Int         @default(1)
   failureReason String?
   isSuspicious  Boolean     @default(false)
   createdAt     DateTime    @default(now())
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   jwtSessions JwtSession[]
 
   @@index([userId, action])

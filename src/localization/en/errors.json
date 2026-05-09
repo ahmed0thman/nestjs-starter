@@ -9,7 +9,10 @@
   "invalid_credentials": "Invalid email or password",
   "user_not_found": "User not found",
   "account_not_verified": "Account not verified, please check your email {email}",
+  "account_lockedout_until": "Account locked, please try again after {minutes} minutes",
+
   "invalid_token": "Invalid or expired token",
+  "token_expired": "Token has expired",
   "forbidden": "You do not have permission",
   "invalid_verification_token": "Invalid or expired verification token"
 }

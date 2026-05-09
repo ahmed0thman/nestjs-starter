@@ -1,4 +1,14 @@
-import { UserSelect } from 'src/generated/prisma/models';
+import { authSecuritySelect, UserSelect } from 'src/generated/prisma/models';
+
+export const userValidatedAuthSecuritiesSelect: authSecuritySelect = {
+  id: true,
+  failedLoginAttempts: true,
+  lastFailedLogin: true,
+  lockoutUntil: true,
+  lastPasswordChange: true,
+  mfaEnabled: true,
+  mfaMethod: true,
+};
 
 export const userValidatedSelect: UserSelect = {
   id: true,
@@ -16,15 +26,7 @@ export const userValidatedSelect: UserSelect = {
     },
   },
   authSecurities: {
-    select: {
-      id: true,
-      failedLoginAttempts: true,
-      lastFailedLogin: true,
-      lockoutUntil: true,
-      lastPasswordChange: true,
-      mfaEnabled: true,
-      mfaMethod: true,
-    },
+    select: userValidatedAuthSecuritiesSelect,
   },
 } as const;
 

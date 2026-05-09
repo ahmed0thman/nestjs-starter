@@ -9,7 +9,9 @@
   "invalid_credentials": "البرد الإلكتروني أو كلمة المرور غير صحيحة",
   "user_not_found": "المستخدم غير موجود",
   "account_not_verified": "لم يتم تفعيل الحساب بعد، يرجى التحقق من بريدك الإلكتروني {email}",
+  "account_lockedout_until": "تم قفل الحساب، حاول مره اخري بعد {minutes} دقيقة",
   "invalid_token": "الرمز غير صالح أو منتهي الصلاحية",
+  "token_expired": "انتهت صلاحية الرمز",
   "forbidden": "ليس لديك صلاحية الوصول ",
   "invalid_verification_token": "رمز التحقق غير صالح أو منتهي الصلاحية"
 }

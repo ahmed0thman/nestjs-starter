@@ -1,19 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
-import { PrismaService } from 'src/common/services/prisma.service';
-import { CreateUserDTO } from './dto/create-user.dto';
-import AppError from 'src/common/errors/app.error';
-import { YcI18nService } from 'src/common/modules/yc-i18n/yc-i18n.service';
-import { env } from 'src/common/config/env/env';
-import { AuthUtilsService } from 'src/common/services/auth.utils.service';
-import { email_status, email_type } from 'src/generated/prisma/enums';
+import { AuthUtilsService } from 'src/auth/auth.utils.service';
 import { VerifyEmailDTO } from 'src/auth/dto/verify-email.dto';
 import { AppConfig } from 'src/common/config/app.config';
+import AppError from 'src/common/errors/app.error';
 import { AppLoggerService } from 'src/common/modules/logger/logger.service';
-import { RCreatedUser } from './responses/created-user.response';
+import { YcI18nService } from 'src/common/modules/yc-i18n/yc-i18n.service';
+import { PrismaService } from 'src/common/services/prisma.service';
+import { email_status, email_type } from 'src/generated/prisma/enums';
+import { CreateUserDTO } from './dto/create-user.dto';
 import { userValidatedSelect } from './payloads/user.payloads';
+import { RCreatedUser } from './responses/created-user.response';
 import { RUserFound } from './responses/user-found.response';
-import { RUserValidated } from './responses/user-validated.response';
 
 @Injectable()
 export class UserService {
@@ -45,19 +43,6 @@ export class UserService {
   }
 
   /**
-   * Verify if the provided plain password matches the hashed password
-   * @param hashedPassword
-   * @param plainPassword
-   * @returns
-   */
-  private async verifyPassword(
-    hashedPassword: string,
-    plainPassword: string,
-  ): Promise<boolean> {
-    return await argon2.verify(hashedPassword, plainPassword);
-  }
-
-  /**
    * Hash a plain password
    * @param password
    * @returns
@@ -79,47 +64,6 @@ export class UserService {
     if (!user)
       throw AppError.notFound(this.ycI18nService.t('errors.user_not_found'));
     return user as RUserFound;
-  }
-
-  /**
-   * Validate a user's credentials
-   * @param email
-   * @param password
-   * @returns
-   */
-  async validateUser(email: string, password: string): Promise<RUserValidated> {
-    if (!email)
-      throw AppError.badRequest(
-        this.ycI18nService.t('errors.invalid_credentials'),
-      );
-    const user = await this.prismaService.user.findUnique({
-      where: { email },
-      select: userValidatedSelect,
-    });
-
-    // if user not found or incorrect password, use fake hash to prevent timing attacks
-    if (!user || !(await this.verifyPassword(user.password, password))) {
-      await argon2.verify(env.FAKE_HASHED_PASSWORD, password);
-      throw AppError.unauthorized(
-        this.ycI18nService.t('errors.invalid_credentials'),
-      );
-    }
-
-    // if user is found but not verified, throw an error
-    if (!user.verified) {
-      throw AppError.unauthorized(
-        this.ycI18nService.t('errors.account_not_verified'),
-      );
-    }
-
-    // if user is found but not active, throw an error
-    if (user.status !== 'ACTIVE') {
-      throw AppError.unauthorized(
-        this.ycI18nService.t('messages.account.account_locked'),
-      );
-    }
-
-    return user as RUserValidated;
   }
 
   /**

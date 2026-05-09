@@ -7,9 +7,10 @@ import { UserModule } from 'src/domain/user/user.module';
 import { MailModule } from 'src/mail/mail.module';
 import { env } from 'src/common/config/env/env';
 import { JwtStrategy } from './jwt.strategy';
-import { AuthUtilsService } from '../common/services/auth.utils.service';
+import { AuthUtilsService } from './auth.utils.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { PrismaService } from 'src/common/services/prisma.service';
+import { LoginHistoryService } from './login-history.service';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { PrismaService } from 'src/common/services/prisma.service';
   providers: [
     AuthService,
     AuthUtilsService,
+    LoginHistoryService,
     JwtStrategy,
     JwtAuthGuard,
     PrismaService,

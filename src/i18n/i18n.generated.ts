@@ -16,7 +16,9 @@ export type I18nTranslations = {
         "invalid_credentials": string;
         "user_not_found": string;
         "account_not_verified": string;
+        "account_lockedout_until": string;
         "invalid_token": string;
+        "token_expired": string;
         "forbidden": string;
         "invalid_verification_token": string;
     };
