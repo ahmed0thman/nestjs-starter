@@ -15,6 +15,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import { ApiSuccessResponseDecorator } from 'src/common/decorators/api-response.decorators';
 import { cookieExtractor } from 'src/utils/cookies.utils';
 import { RequestMetadata } from 'src/utils/request-metadata.utils';
+import AppError from 'src/common/errors/app.error';
 @Controller('/auth')
 export class AuthController {
   constructor(
@@ -103,6 +104,28 @@ export class AuthController {
     return {
       message: this.ycI18nService.t('messages.account.login'),
       data: data.user,
+    };
+  }
+
+  @ApiOperation({ summary: 'Sign out a user' })
+  @ApiSuccessResponseDecorator(200, 'User signed out successfully')
+  @Post('/sign-out')
+  async signOut(
+    @Req() req: Request & { metadata: RequestMetadata },
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiSuccessResponse> {
+    const meta = req.metadata;
+    const accessToken = cookieExtractor(req, 'accessToken');
+    const refreshToken = cookieExtractor(req, 'refreshToken');
+    if (accessToken && refreshToken) {
+      await this.authService.signOut(refreshToken, accessToken, meta);
+      // Clear the authentication cookies
+      res.clearCookie('refreshToken');
+      res.clearCookie('accessToken');
+    } else
+      throw AppError.unauthorized(this.ycI18nService.t('errors.invalid_token'));
+    return {
+      message: this.ycI18nService.t('messages.account.logout'),
     };
   }
 

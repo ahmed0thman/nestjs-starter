@@ -476,60 +476,60 @@ export class AuthService {
     // TODO: remove throw from the transaction and return transaction result instead
     const transactionResult =
       await this.prismaService.transaction<AuthUserPayload>(
-      async (tx) => {
-        // TODO: check if the jti is blacklisted in redis, if yes then invalidate all tokens for this user and force re-login
-        // TODO: handle token reuse detection by checking if the old jti is used again, if yes then invalidate all sessions for this user and force re-login
-        // 2. check if the jti is valid and not blacklisted in the database
-        const jwtSession = await tx.jwtSession.findUnique({
-          where: { jti: payload.jti },
-          select: { isValid: true, expiresAt: true, loginHistoryId: true },
-        });
+        async (tx) => {
+          // TODO: check if the jti is blacklisted in redis, if yes then invalidate all tokens for this user and force re-login
+          // TODO: handle token reuse detection by checking if the old jti is used again, if yes then invalidate all sessions for this user and force re-login
+          // 2. check if the jti is valid and not blacklisted in the database
+          const jwtSession = await tx.jwtSession.findUnique({
+            where: { jti: payload.jti },
+            select: { isValid: true, expiresAt: true, loginHistoryId: true },
+          });
 
-        // 3. if not found or not valid then invalidate the session and force re-login
-        if (!jwtSession || !jwtSession.isValid) {
-          //  TODO: invalidate all sessions for this user in the database and force re-login
+          // 3. if not found or not valid then invalidate the session and force re-login
+          if (!jwtSession || !jwtSession.isValid) {
+            //  TODO: invalidate all sessions for this user in the database and force re-login
             return {
               success: false,
               code: 'invalid_token',
               error: AppError.unauthorized(
-            this.ycI18nService.t('errors.invalid_token'),
+                this.ycI18nService.t('errors.invalid_token'),
               ),
             };
-        }
+          }
 
-        // 4. if valid but expired then mark the session as invalid and force re-login
-        if (jwtSession.expiresAt < new Date()) {
-          await tx.jwtSession.update({
-            where: { jti: payload.jti },
-            data: { isValid: false },
-          });
+          // 4. if valid but expired then mark the session as invalid and force re-login
+          if (jwtSession.expiresAt < new Date()) {
+            await tx.jwtSession.update({
+              where: { jti: payload.jti },
+              data: { isValid: false },
+            });
             return {
               success: false,
               code: 'token_expired',
               error: AppError.unauthorized(
-            this.ycI18nService.t('errors.token_expired'),
+                this.ycI18nService.t('errors.token_expired'),
               ),
             };
-        }
-        // TODO: set old refresh token as blacklisted in redis and with same expiration
+          }
+          // TODO: set old refresh token as blacklisted in redis and with same expiration
 
-        // 5. if all checks pass then generate new jwtSession with the new jti and expiration time and update the current session to be invalid
-        await tx.jwtSession.update({
-          where: { jti: payload.jti },
-          data: { isValid: false },
-        });
+          // 5. if all checks pass then generate new jwtSession with the new jti and expiration time and update the current session to be invalid
+          await tx.jwtSession.update({
+            where: { jti: payload.jti },
+            data: { isValid: false },
+          });
 
-        const jwtSessionData = await this.createJwtSessionForUser(
-          user,
-          jwtSession.loginHistoryId,
-          tx,
-        );
-        //  TODO: add new jti to redis with expiration time same as the refresh token
-        // TODO: add new access token to redis and set expiration time same as the access token for quick invalidation, blacklist the old accessTokens in redis until they expire
+          const jwtSessionData = await this.createJwtSessionForUser(
+            user,
+            jwtSession.loginHistoryId,
+            tx,
+          );
+          //  TODO: add new jti to redis with expiration time same as the refresh token
+          // TODO: add new access token to redis and set expiration time same as the access token for quick invalidation, blacklist the old accessTokens in redis until they expire
           return { success: true, data: jwtSessionData };
-      },
-      { isolationLevel: 'Serializable' },
-    );
+        },
+        { isolationLevel: 'Serializable' },
+      );
     this.logger.log(
       JSON.stringify(transactionResult),
       'AuthService-refreshTokens',
@@ -576,6 +576,62 @@ export class AuthService {
       );
       // update email history status to failed
       await this.userService.updateEmailHistoryStatus(emailHistoryId, 'failed');
+    }
+  }
+
+  /**
+   * Sign out a user by invalidating their JWT session and blacklisting their access token
+   * @param userId
+   * @param jti
+   * @param requestMetaData
+   */
+  async signOut(
+    refreshToken: string,
+    accessToken: string,
+    requestMetaData: RequestMetadata,
+  ): Promise<void> {
+    // 1. verify the refresh token to get the jti and user id
+    const payload: JwtPayload = await this.jwtService.verifyAsync(
+      refreshToken,
+      {
+        secret: env.JWT_SECRET,
+      },
+    );
+
+    const jti = payload.jti;
+    const userId = payload.sub;
+    this.logger.log(JSON.stringify(payload), 'AuthService-signOut');
+    const transactionResult = await this.prismaService.transaction<void>(
+      async (tx) => {
+        // 1. invalidate the current JWT session in the database to prevent further use of the refresh token
+        await tx.jwtSession.update({
+          where: { jti },
+          data: { isValid: false },
+        });
+        // 2. blacklist the current access token in Redis to prevent further use until it expires
+        // TODO: implement Redis blacklist for access tokens and add the jti to the blacklist with expiration time same as the access token
+
+        // 3. log the sign out action in the login history for auditing and analytics purposes
+        await this.loginHistoryService.createLoginHistory(
+          requestMetaData,
+          userId,
+          true,
+          tx,
+        );
+
+        // update authSecurity lastLogout time for the user to track the last logout time and for security monitoring
+        await tx.authSecurity.update({
+          where: { userId },
+          data: { lastLogout: new Date() },
+        });
+
+        return { success: true };
+      },
+      { isolationLevel: 'Serializable' },
+    );
+
+    if (!transactionResult.success && transactionResult.error) {
+      throw transactionResult.error;
     }
   }
 }

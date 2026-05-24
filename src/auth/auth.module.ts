@@ -20,7 +20,7 @@ import { LoginHistoryService } from './login-history.service';
     JwtModule.register({
       secret: env.JWT_SECRET,
       // access tokens will expire in 15 minutes, you can adjust this as needed
-      signOptions: { expiresIn: env.JWT_ACCESS_TOKEN_EXP as undefined },
+      signOptions: { expiresIn: env.JWT_ACCESS_TOKEN_EXP },
       // refresh tokens will expire in 7 days, you can adjust this as needed
 
       global: true, // Make the JwtModule available globally, so you don't need to import it in other modules
