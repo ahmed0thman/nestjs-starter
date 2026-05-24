@@ -142,9 +142,7 @@ export class AuthController {
   ): Promise<ApiSuccessResponse<JWTUserPayload>> {
     const refreshToken = cookieExtractor(res.req, 'refreshToken');
     if (!refreshToken) {
-      return {
-        message: this.ycI18nService.t('errors.invalid_token'),
-      };
+      throw AppError.unauthorized(this.ycI18nService.t('errors.invalid_token'));
     }
     const { user, token } = await this.authService.refreshTokens(refreshToken);
     this.setTokensOnCookies(res, token);
