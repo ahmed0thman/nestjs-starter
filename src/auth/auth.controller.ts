@@ -28,10 +28,7 @@ export class AuthController {
    * @param res
    * @param tokens
    */
-  private setTokensOnCookies(
-    @Res({ passthrough: true }) res: Response,
-    tokens: TokensPayload,
-  ) {
+  private setTokensOnCookies(res: Response, tokens: TokensPayload) {
     const isProduction = env.NODE_ENV === 'production';
     // Set the refresh token as an HTTP-only cookie
     res.cookie('refreshToken', tokens.refreshToken, {
