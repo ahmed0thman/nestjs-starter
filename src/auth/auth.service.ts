@@ -200,7 +200,7 @@ export class AuthService {
     password: string,
   ) {
     // to track the failure reason for proper error handling after the transaction';
-    const result = await this.prismaService.$transaction(
+    const result = await this.prismaService.transaction<AuthUserPayload>(
       async (tx) => {
         // find user by email and select the fields needed for validation and token generation
         const user = (await tx.user.findUnique({
@@ -216,7 +216,13 @@ export class AuthService {
             false,
             tx,
           );
-          return { success: false, code: 'user_not_found' };
+          return {
+            success: false,
+            code: 'user_not_found',
+            error: AppError.unauthorized(
+              this.ycI18nService.t('errors.invalid_credentials'),
+            ),
+          };
         }
         // if user found, update the login history with the user id for better tracking and analytics
         await this.loginHistoryService.updateLoginHistoryWithUserId(
@@ -240,7 +246,13 @@ export class AuthService {
             `Locked out login attempt for user ${user.id} with email ${email}. Remaining lockout duration: ${remainingLockoutMinutes} minutes`,
             'AuthService-SignIn',
           );
-          return { success: false, code: 'account_lockedout_until' };
+          return {
+            success: false,
+            code: 'account_lockedout_until',
+            error: AppError.unauthorized(
+              this.ycI18nService.t('errors.account_lockedout_until'),
+            ),
+          };
         }
 
         // if locked out but lockout duration has passed, reset lockout status and failed login attempts
@@ -271,7 +283,13 @@ export class AuthService {
           );
 
           await this.handleFailedLoginAttempts(authSecurity, user, email, tx);
-          return { success: false, code: 'invalid_credentials' };
+          return {
+            success: false,
+            code: 'invalid_credentials',
+            error: AppError.unauthorized(
+              this.ycI18nService.t('errors.invalid_credentials'),
+            ),
+          };
         }
 
         // if user is found but not verified, throw an error
@@ -283,7 +301,13 @@ export class AuthService {
             tx,
           );
           await this.handleFailedLoginAttempts(authSecurity, user, email, tx);
-          return { success: false, code: 'account_not_verified' };
+          return {
+            success: false,
+            code: 'account_not_verified',
+            error: AppError.unauthorized(
+              this.ycI18nService.t('errors.account_not_verified'),
+            ),
+          };
         }
 
         // if user is not active, throw an error
@@ -295,7 +319,13 @@ export class AuthService {
             tx,
           );
           await this.handleFailedLoginAttempts(authSecurity, user, email, tx);
-          return { success: false, code: 'account_not_active' };
+          return {
+            success: false,
+            code: 'account_not_active',
+            error: AppError.unauthorized(
+              this.ycI18nService.t('messages.account.deactivated'),
+            ),
+          };
         }
 
         // if all checks pass, reset failed login attempts and lockout status
@@ -326,35 +356,8 @@ export class AuthService {
       { isolationLevel: 'Serializable' },
     );
 
-    if (!result.success) {
-      switch (result.code) {
-        case 'user_not_found':
-          await argon2.verify(env.FAKE_HASHED_PASSWORD, password);
-          throw AppError.unauthorized(
-            this.ycI18nService.t('errors.invalid_credentials'),
-          );
-        case 'account_lockedout_until':
-          throw AppError.unauthorized(
-            this.ycI18nService.t('errors.account_lockedout_until', {
-              args: { minutes: env.LockOutDurationMinutes },
-            }),
-          );
-        case 'account_not_verified':
-          throw AppError.unauthorized(
-            this.ycI18nService.t('errors.account_not_verified', {
-              args: { email: this.authUtilsService.secrtizeEmail(email) },
-            }),
-          );
-        case 'account_not_active':
-          throw AppError.unauthorized(
-            this.ycI18nService.t('messages.account.deactivated'),
-          );
-        default:
-          await argon2.verify(env.FAKE_HASHED_PASSWORD, password);
-          throw AppError.unauthorized(
-            this.ycI18nService.t('errors.invalid_credentials'),
-          );
-      }
+    if (!result.success && result.error) {
+      throw result.error;
     }
     return result.data as AuthUserPayload;
   }
@@ -447,6 +450,10 @@ export class AuthService {
    * @returns
    */
   async refreshTokens(refreshToken: string): Promise<AuthUserPayload> {
+    this.logger.log(
+      `Refreshing tokens for refreshToken with jti ${refreshToken}`,
+      'AuthService-refreshTokens',
+    );
     // 1. verify the refresh token
     const payload: JwtPayload = await this.jwtService.verifyAsync(
       refreshToken,
@@ -467,7 +474,8 @@ export class AuthService {
     }
 
     // TODO: remove throw from the transaction and return transaction result instead
-    const transactionResult = await this.prismaService.$transaction(
+    const transactionResult =
+      await this.prismaService.transaction<AuthUserPayload>(
       async (tx) => {
         // TODO: check if the jti is blacklisted in redis, if yes then invalidate all tokens for this user and force re-login
         // TODO: handle token reuse detection by checking if the old jti is used again, if yes then invalidate all sessions for this user and force re-login
@@ -480,9 +488,13 @@ export class AuthService {
         // 3. if not found or not valid then invalidate the session and force re-login
         if (!jwtSession || !jwtSession.isValid) {
           //  TODO: invalidate all sessions for this user in the database and force re-login
-          throw AppError.unauthorized(
+            return {
+              success: false,
+              code: 'invalid_token',
+              error: AppError.unauthorized(
             this.ycI18nService.t('errors.invalid_token'),
-          );
+              ),
+            };
         }
 
         // 4. if valid but expired then mark the session as invalid and force re-login
@@ -491,9 +503,13 @@ export class AuthService {
             where: { jti: payload.jti },
             data: { isValid: false },
           });
-          throw AppError.unauthorized(
+            return {
+              success: false,
+              code: 'token_expired',
+              error: AppError.unauthorized(
             this.ycI18nService.t('errors.token_expired'),
-          );
+              ),
+            };
         }
         // TODO: set old refresh token as blacklisted in redis and with same expiration
 
@@ -510,12 +526,24 @@ export class AuthService {
         );
         //  TODO: add new jti to redis with expiration time same as the refresh token
         // TODO: add new access token to redis and set expiration time same as the access token for quick invalidation, blacklist the old accessTokens in redis until they expire
-        return jwtSessionData;
+          return { success: true, data: jwtSessionData };
       },
       { isolationLevel: 'Serializable' },
     );
+    this.logger.log(
+      JSON.stringify(transactionResult),
+      'AuthService-refreshTokens',
+    );
+    if (!transactionResult.success && transactionResult.error) {
+      this.logger.error(
+        `Failed to refresh tokens for user ${payload.sub} due to ${transactionResult.code}`,
+        String(transactionResult.error),
+        'AuthService-refreshTokens',
+      );
+      throw transactionResult.error;
+    }
 
-    return transactionResult;
+    return transactionResult.data as AuthUserPayload;
   }
 
   /**
