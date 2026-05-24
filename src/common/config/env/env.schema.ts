@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { StringValue } from 'ms';
 
 export const envSchema = z.object({
   NODE_ENV: z
@@ -20,8 +21,8 @@ export const envSchema = z.object({
     .default('5433'),
   // Authentication configuration
   JWT_SECRET: z.string(),
-  JWT_ACCESS_TOKEN_EXP: z.any().default('30m'),
-  JWT_REFRESH_TOKEN_EXP: z.any().default('7d'), // as we well use refresh token rotation, we can set a short expiration time for refresh tokens
+  JWT_ACCESS_TOKEN_EXP: z.custom<StringValue>().default('30m'),
+  JWT_REFRESH_TOKEN_EXP: z.custom<StringValue>().default('7d'), // as we well use refresh token rotation, we can set a short expiration time for refresh tokens
   FAKE_PASSWORD: z.string().default('fakepassword'),
   FAKE_HASHED_PASSWORD: z
     .string()
