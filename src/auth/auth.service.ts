@@ -73,7 +73,7 @@ export class AuthService {
   ): Promise<TokensPayload> {
     const accessToken = await this.jwtService.signAsync(jwtUserPayload);
     const refreshToken = await this.jwtService.signAsync(jwtUserPayload, {
-      expiresIn: env.JWT_REFRESH_TOKEN_EXP as undefined,
+      expiresIn: env.JWT_REFRESH_TOKEN_EXP,
       jwtid: this.authUtilsService.genereateSecureJti(),
     });
 
