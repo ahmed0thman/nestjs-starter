@@ -22,6 +22,7 @@
   "dependencies": {
     "@casl/ability": "^6.8.1",
     "@casl/prisma": "^1.6.2",
+    "@nestjs/cache-manager": "^3.1.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
@@ -36,6 +37,7 @@
     "@react-email/render": "^2.0.6",
     "@react-email/tailwind": "^2.0.7",
     "argon2": "^0.44.0",
+    "cache-manager": "^7.2.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
