@@ -1,4 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 import { EnvModule } from './common/config/env/env.module';
 import { AuthModule } from './auth/auth.module';
 import { DomainModule } from './domain/domain.module';
@@ -20,6 +22,7 @@ import { CaslModule } from './common/modules/casl/casl.module';
 import { CaslGuard } from './common/modules/casl/casl.guard';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RequestMetadataMiddleware } from './common/middleware/request-metadata.middleware';
+import { env } from './common/config/env/env';
 
 @Module({
   imports: [
@@ -40,6 +43,19 @@ import { RequestMetadataMiddleware } from './common/middleware/request-metadata.
     MailModule,
     YcI18nModule,
     CaslModule,
+    CacheModule.register({
+      isGlobal: true,
+      useFactory: async () => ({
+        store: await redisStore({
+          socket: {
+            host: env.REDIS_HOST,
+            port: parseInt(env.REDIS_PORT, 10),
+          },
+          password: env.REDIS_PASSWORD,
+          ttl: env.REDIS_TTL, // default TTL for cache in milliseconds (1 minute)
+        }),
+      }),
+    }),
   ],
   providers: [
     {

@@ -19,6 +19,14 @@ export const envSchema = z.object({
     .string()
     .regex(/^\d+$/, 'DATABASE_PORT must be a number')
     .default('5433'),
+  // Redis configuration
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z
+    .string()
+    .regex(/^\d+$/, 'REDIS_PORT must be a number')
+    .default('6379'),
+  REDIS_PASSWORD: z.string().default('redis-strong-password'),
+  REDIS_TTL: z.int().positive().default(60000), // default TTL for cache in milliseconds (1 minute)
   // Authentication configuration
   JWT_SECRET: z.string(),
   JWT_ACCESS_TOKEN_EXP: z.custom<StringValue>().default('30m'),

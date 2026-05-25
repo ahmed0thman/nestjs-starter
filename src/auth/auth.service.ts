@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { UserService } from 'src/domain/user/user.service';
 import { MailService } from 'src/mail/mail.service';
@@ -27,6 +27,7 @@ import {
   TokensPayload,
 } from './payloads/auth.payload';
 import { JwtPayload } from './payloads/jwt.payload';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 @Injectable()
 export class AuthService {
   constructor(
@@ -38,6 +39,7 @@ export class AuthService {
     private readonly ycI18nService: YcI18nService,
     private readonly authUtilsService: AuthUtilsService,
     private readonly logger: AppLoggerService,
+    @Inject(CACHE_MANAGER) cacheManager: Cache,
   ) {}
 
   /**
