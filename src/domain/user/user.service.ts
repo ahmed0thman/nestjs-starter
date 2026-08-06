@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { AuthUtilsService } from 'src/auth/auth.utils.service';
 import { VerifyEmailDTO } from 'src/auth/dto/verify-email.dto';
@@ -12,6 +12,7 @@ import { CreateUserDTO } from './dto/create-user.dto';
 import { userValidatedSelect } from './payloads/user.payloads';
 import { RCreatedUser } from './responses/created-user.response';
 import { RUserFound } from './responses/user-found.response';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class UserService {
@@ -20,6 +21,7 @@ export class UserService {
     private readonly ycI18nService: YcI18nService,
     private readonly authUtilsService: AuthUtilsService,
     private readonly logger: AppLoggerService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   private createRandomInitialUserName(
@@ -57,12 +59,31 @@ export class UserService {
    * @returns
    */
   async findUserById(id: string): Promise<RUserFound> {
+    // check cache first
+    const cachedUser = await this.cacheManager.get<RUserFound>(`user:${id}`);
+    // if cache hit, return the cached user
+    if (cachedUser) {
+      this.logger.log(
+        `User with id ${id} found in cache`,
+        'UserService-findUserById',
+      );
+      return cachedUser;
+    }
+
+    // if cache miss, fetch from database, cache it, and return the user
     const user = await this.prismaService.user.findUnique({
       where: { id },
       select: userValidatedSelect,
     });
+    // if user not found, throw an error without caching the result
     if (!user)
       throw AppError.notFound(this.ycI18nService.t('errors.user_not_found'));
+
+    this.logger.log(
+      `User with id ${id} fetched from database and cached`,
+      'UserService-findUserById',
+    );
+    await this.cacheManager.set(`user:${id}`, user, 5 * 60000); // cache for 5 minutes
     return user as RUserFound;
   }
 

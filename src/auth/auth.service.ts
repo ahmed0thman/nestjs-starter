@@ -453,7 +453,7 @@ export class AuthService {
    */
   async refreshTokens(refreshToken: string): Promise<AuthUserPayload> {
     this.logger.log(
-      `Refreshing tokens for refreshToken with jti ${refreshToken}`,
+      `Refreshing tokens for refreshToken  ${refreshToken}`,
       'AuthService-refreshTokens',
     );
     // 1. verify the refresh token
@@ -466,6 +466,7 @@ export class AuthService {
 
     // TODO: fetch user from redis cache
     // find the user by id from token payload
+    // check cache first
     const user = await this.userService.findUserById(payload.sub);
 
     // if user not active for any reason then throw an error to prevent token refresh

@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
+import Keyv, { KeyvStoreAdapter } from 'keyv';
+import KeyvRedis from '@keyv/redis';
 import { EnvModule } from './common/config/env/env.module';
 import { AuthModule } from './auth/auth.module';
 import { DomainModule } from './domain/domain.module';
@@ -43,17 +44,17 @@ import { env } from './common/config/env/env';
     MailModule,
     YcI18nModule,
     CaslModule,
-    CacheModule.register({
+    CacheModule.registerAsync({
       isGlobal: true,
-      useFactory: async () => ({
-        store: await redisStore({
-          socket: {
-            host: env.REDIS_HOST,
-            port: parseInt(env.REDIS_PORT, 10),
-          },
-          password: env.REDIS_PASSWORD,
-          ttl: env.REDIS_TTL, // default TTL for cache in milliseconds (1 minute)
-        }),
+      useFactory: () => ({
+        stores: [
+          new Keyv({
+            store: new KeyvRedis(
+              `redis://:${env.REDIS_PASSWORD}@${env.REDIS_HOST}:${env.REDIS_PORT}`,
+            ) as KeyvStoreAdapter,
+            ttl: env.REDIS_TTL, // default TTL for cache in milliseconds (1 minute)
+          }),
+        ],
       }),
     }),
   ],

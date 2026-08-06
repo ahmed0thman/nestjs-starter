@@ -24,7 +24,7 @@ export const envSchema = z.object({
   REDIS_PORT: z
     .string()
     .regex(/^\d+$/, 'REDIS_PORT must be a number')
-    .default('6379'),
+    .default('6378'),
   REDIS_PASSWORD: z.string().default('redis-strong-password'),
   REDIS_TTL: z.int().positive().default(60000), // default TTL for cache in milliseconds (1 minute)
   // Authentication configuration
